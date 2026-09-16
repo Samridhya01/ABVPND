@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <path id="fav-arc-top" d="M 32,150 A 118,118 0 0,1 268,150" fill="none" />
+    <path id="fav-arc-bottom" d="M 268,150 A 118,118 0 0,1 32,150" fill="none" />
+    <pattern id="fav-hatch" width="7" height="7" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#ffffff" stroke-width="2.6" />
+    </pattern>
+    <clipPath id="fav-clip">
+      <circle cx="150" cy="150" r="95" />
+    </clipPath>
+  </defs>
+
+  <!-- Outer Orange Rim -->
+  <circle cx="150" cy="150" r="148" fill="#ff5500" stroke="#0035cb" stroke-width="2" />
+
+  <!-- Outer White Spacer -->
+  <circle cx="150" cy="150" r="144" fill="#ffffff" />
+
+  <!-- Royal Blue Ring -->
+  <circle cx="150" cy="150" r="140" fill="#053bd7" />
+
+  <!-- Inner White Separator -->
+  <circle cx="150" cy="150" r="97" fill="#ffffff" />
+
+  <!-- Central Saffron Disc -->
+  <circle cx="150" cy="150" r="95" fill="#ff5500" />
+
+  <!-- India Map Outline & Diagonal White Stripes -->
+  <g clip-path="url(#fav-clip)">
+    <!-- Akhand Bharat / Indian Subcontinent Map Silhouette with diagonal hatch -->
+    <path
+      d="M138 78 C144 72 152 72 157 78 C163 84 175 88 185 92 C196 97 210 102 215 110 C220 119 220 128 208 132 C196 136 195 144 195 152 C194 165 178 190 162 208 C155 216 150 226 148 230 C146 226 142 212 138 202 C132 188 120 182 112 174 C104 166 94 158 92 148 C90 138 100 130 104 122 C108 114 116 108 122 100 C128 92 132 84 138 78 Z"
+      fill="url(#fav-hatch)"
+      stroke="#ffffff"
+      stroke-width="2.5"
+    />
+    <!-- Raised Hand & Torch (Mashal) -->
+    <!-- Arm & Fist -->
+    <path
+      d="M145 220 L146 178 C144 176 141 172 141 166 C141 160 145 155 150 155 C156 155 160 160 160 166 C160 171 157 176 155 178 L156 220 Z"
+      fill="#ffffff"
+      stroke="#000000"
+      stroke-width="2"
+    />
+    <!-- Torch Handle & Cup -->
+    <path d="M146 154 L146 138 L155 138 L155 154 Z" fill="#ffffff" stroke="#000000" stroke-width="2" />
+    <path d="M141 138 L160 138 L164 126 L137 126 Z" fill="#ffffff" stroke="#000000" stroke-width="2" />
+    <line x1="140" y1="132" x2="161" y2="132" stroke="#000000" stroke-width="1.5" />
+    <!-- Flaming Torch Fire & Billowing Smoke -->
+    <path
+      d="M138 125 C136 115 140 106 148 101 C154 97 163 95 171 88 C177 82 184 76 189 82 C194 88 190 97 186 102 C195 102 201 108 199 116 C197 124 186 126 182 126 C176 126 172 120 167 122 C162 124 160 126 150 126 Z"
+      fill="#ffffff"
+      stroke="#000000"
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+    <path d="M148 118 C153 112 162 108 170 104 C176 100 182 95 186 89" fill="none" stroke="#000000" stroke-width="1.5" />
+    <path d="M156 122 C161 116 169 114 176 114" fill="none" stroke="#000000" stroke-width="1.5" />
+  </g>
+
+  <!-- Bengali Text: Top Arc (অখিল ভারতীয় বিদ্যार्थी পরিষদ) -->
+  <text fill="#ffffff" font-family="'Noto Sans Bengali', system-ui, sans-serif" font-weight="900" font-size="20.5" letter-spacing="1.2">
+    <textPath href="#fav-arc-top" startOffset="50%" text-anchor="middle">
+      অখিল ভারতীয় বিদ্যार्थी পরিষদ
+    </textPath>
+  </text>
+
+  <!-- Bengali Text: Bottom Arc (জ্ঞান • চরিত্র • একতা) -->
+  <text fill="#ffffff" font-family="'Noto Sans Bengali', system-ui, sans-serif" font-weight="900" font-size="19" letter-spacing="2">
+    <textPath href="#fav-arc-bottom" startOffset="50%" text-anchor="middle">
+      জ্ঞান • চরিত্র • একতা
+    </textPath>
+  </text>
+</svg>
