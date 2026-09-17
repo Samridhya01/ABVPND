@@ -22,6 +22,8 @@ import {
   ExternalLink,
   Eye,
   IdCard,
+  Mail,
+  Copy,
 } from 'lucide-react';
 import {
   Notice,
@@ -34,6 +36,7 @@ import {
   DownloadDocument,
   UnitSettings,
   MembershipApplication,
+  NewsletterSubscriber,
 } from '../types';
 import { storageService } from '../services/storageService';
 
@@ -73,15 +76,18 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'memberships' | 'notices' | 'events' | 'team' | 'tickets' | 'suggestions' | 'gallery' | 'downloads' | 'settings'
+    'overview' | 'memberships' | 'notices' | 'events' | 'team' | 'tickets' | 'suggestions' | 'gallery' | 'downloads' | 'newsletter' | 'settings'
   >('overview');
 
   const [memberships, setMemberships] = useState<MembershipApplication[]>(storageService.getMemberships());
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>(storageService.getNewsletterSubscribers());
+  const [copySuccess, setCopySuccess] = useState(false);
   const [viewingScreenshot, setViewingScreenshot] = useState<string | null>(null);
 
   React.useEffect(() => {
     const handleUpdate = () => {
       setMemberships(storageService.getMemberships());
+      setSubscribers(storageService.getNewsletterSubscribers());
     };
     window.addEventListener('abvp_data_updated', handleUpdate);
     return () => window.removeEventListener('abvp_data_updated', handleUpdate);
@@ -284,6 +290,28 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
+  const handleCopySubscriberEmails = () => {
+    const emails = subscribers.map((s) => s.email).join(', ');
+    if (!emails) {
+      alert('No subscribers found.');
+      return;
+    }
+    navigator.clipboard.writeText(emails);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleExportNewsletterCSV = () => {
+    storageService.exportNewsletterCSV();
+  };
+
+  const handleDeleteSubscriber = (id: string) => {
+    if (confirm('Remove this subscriber from the mailing list?')) {
+      storageService.deleteNewsletterSubscriber(id);
+      setSubscribers(storageService.getNewsletterSubscribers());
+    }
+  };
+
   const handleExportMembershipCSV = () => {
     const rows = [
       ['Membership ID', 'Student Name', 'Phone', 'Semester', 'Stream', 'Address', 'Fee Amount', 'Payment Status', 'Submitted At', 'Admin Notes'],
@@ -443,6 +471,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 { id: 'suggestions', label: 'Suggestions', icon: MessageSquare, badge: suggestions.length },
                 { id: 'gallery', label: 'Gallery', icon: ImageIcon, badge: gallery.length },
                 { id: 'downloads', label: 'Downloads', icon: FileText, badge: downloads.length },
+                { id: 'newsletter', label: 'Newsletter', icon: Mail, badge: subscribers.length },
                 { id: 'settings', label: 'Settings', icon: Settings, badge: null },
               ].map((item) => {
                 const IconComp = item.icon;
@@ -502,7 +531,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </div>
 
                   {/* Quick KPI stats */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200">
                       <div className="text-xs text-slate-500">Memberships (₹5)</div>
                       <div className="text-2xl font-bold text-orange-600 mt-1">{memberships.length}</div>
@@ -535,6 +564,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <div className="text-xs text-slate-500">Student Suggestions</div>
                       <div className="text-2xl font-bold text-slate-900 mt-1">{suggestions.length}</div>
                       <div className="text-[10px] text-slate-500 mt-0.5">From campus students</div>
+                    </div>
+                    <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200">
+                      <div className="text-xs text-slate-500">Newsletter Emails</div>
+                      <div className="text-2xl font-bold text-amber-600 mt-1">{subscribers.length}</div>
+                      <div className="text-[10px] text-emerald-600 mt-0.5 font-medium">Verified Active</div>
                     </div>
                   </div>
 
@@ -1309,6 +1343,119 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         </button>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: NEWSLETTER SUBSCRIBERS */}
+              {activeTab === 'newsletter' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200">
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-orange-600" />
+                        <span>Student Newsletter & Notice Mailing List</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                          {subscribers.length} Subscribers
+                        </span>
+                      </h5>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Students subscribed to receive Calcutta University exam circulars, scholarship updates, and campus event alerts.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCopySubscriberEmails}
+                        className="px-3 py-1.5 text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-slate-700 rounded-lg flex items-center gap-1.5 border border-stone-300 transition-colors"
+                        title="Copy all email addresses separated by commas"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{copySuccess ? 'Copied to Clipboard!' : 'Copy All Emails'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleExportNewsletterCSV}
+                        className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 shadow transition-colors"
+                        title="Export subscriber list to CSV spreadsheet"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Export CSV</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List of Subscribers */}
+                  <div className="bg-stone-50 border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+                    {subscribers.length === 0 ? (
+                      <div className="p-8 text-center text-slate-500 text-xs">
+                        <Mail className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                        <p className="font-semibold">No subscribers yet.</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Students can subscribe through the newsletter form located in the footer.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-stone-200/70 text-slate-700 font-semibold border-b border-stone-300">
+                            <tr>
+                              <th className="py-2.5 px-3">Student Email</th>
+                              <th className="py-2.5 px-3">Interested Topics</th>
+                              <th className="py-2.5 px-3">Subscribed On</th>
+                              <th className="py-2.5 px-3">Status</th>
+                              <th className="py-2.5 px-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-200">
+                            {subscribers.map((sub) => (
+                              <tr key={sub.id} className="hover:bg-white transition-colors">
+                                <td className="py-2.5 px-3 font-semibold text-slate-900 font-mono text-[11px]">
+                                  {sub.email}
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <div className="flex flex-wrap gap-1 max-w-xs">
+                                    {sub.topics && sub.topics.length > 0 ? (
+                                      sub.topics.map((top, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 truncate"
+                                        >
+                                          {top}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span className="text-[10px] text-slate-400">All Updates</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-500 text-[11px]">
+                                  {sub.subscribedAt}
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    Active
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSubscriber(sub.id)}
+                                    className="p-1 text-slate-500 hover:text-red-600 rounded transition-colors"
+                                    title="Delete subscriber"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

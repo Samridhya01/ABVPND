@@ -7,8 +7,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Safe directory resolution supporting both ESM (tsx dev) and bundled CommonJS (dist/server.cjs)
+const currentDir = typeof __dirname !== 'undefined'
+  ? __dirname
+  : (typeof import.meta !== 'undefined' && import.meta.url ? path.dirname(fileURLToPath(import.meta.url)) : process.cwd());
 
 const app = express();
 const PORT = 3000;
