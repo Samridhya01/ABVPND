@@ -71,7 +71,7 @@ export const NoticeDetailModal: React.FC<NoticeDetailModalProps> = ({ notice, on
             </div>
           ) : (
             <p className="text-slate-600 text-sm">
-              All regular undergraduate students of Narasimha Datta College are advised to note the contents of this announcement. For further inquiries or ground assistance, visit the ABVP Student Help Desk near the college gate.
+              All regular undergraduate students of Narasinha Dutt College are advised to note the contents of this announcement. For further inquiries or ground assistance, visit the ABVP Student Help Desk near the college gate.
             </p>
           )}
 

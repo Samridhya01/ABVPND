@@ -86,7 +86,7 @@ export const EventRegisterModal: React.FC<EventRegisterModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <p className="text-xs text-slate-600">
-              Registration is open to all regular students of Narasimha Datta College. Free participation passes & certificates will be issued.
+              Registration is open to all regular students of Narasinha Dutt College. Free participation passes & certificates will be issued.
             </p>
 
             <div>

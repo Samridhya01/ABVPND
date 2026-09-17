@@ -32,7 +32,7 @@ export const VidyarthiChatbot: React.FC = () => {
     {
       id: 'welcome',
       role: 'model',
-      text: `**Namaskar! I am Vidyarthi Mitra**, the AI campus assistant for **ABVP Narasimha Datta College Unit, Howrah**.\n\nI can assist you with:\n- **Annual Membership (₹5 nominal fee)** and digital card generation\n- **College Admissions & Departments** at NDC\n- **Calcutta University Examination & Syllabus** updates\n- **Scholarships (SVMCM, Kanyashree, Aikyashree)**\n- **Student Help Desk & Grievance support**\n\nHow can I help you today? *(You can also write in বাংলা or हिंदी)*`,
+      text: `**Namaskar! I am Vidyarthi Mitra**, the AI campus assistant for **ABVP Narasinha Dutt College Unit, Howrah**.\n\nI can assist you with:\n- **Annual Membership (₹5 nominal fee)** and digital card generation\n- **College Admissions & Departments** at NDC\n- **Calcutta University Examination & Syllabus** updates\n- **Scholarships (SVMCM, Kanyashree, Aikyashree)**\n- **Student Help Desk & Grievance support**\n\nHow can I help you today? *(You can also write in বাংলা or हिंदी)*`,
     },
   ]);
 
@@ -91,7 +91,7 @@ export const VidyarthiChatbot: React.FC = () => {
       const botMessage: ChatMessage = {
         id: `bot-${Date.now()}`,
         role: 'model',
-        text: data.reply || 'Thank you for contacting the ABVP Narasimha Datta College Unit.',
+        text: data.reply || 'Thank you for contacting the ABVP Narasinha Dutt College Unit.',
         searchQueries: data.searchQueries,
         sources: data.sources,
         grounded: data.grounded,
@@ -105,7 +105,7 @@ export const VidyarthiChatbot: React.FC = () => {
         {
           id: `bot-${Date.now()}`,
           role: 'model',
-          text: `**ABVP Narasimha Datta College Unit Info:**\n\n- **Membership Drive:** Enroll online in the **Membership** tab for just **₹5** with instant digital ID.\n- **Campus Address:** 129, Belilious Road, Howrah.\n- **Help Desk:** Reach our student representatives via the Help Desk section on this page.\n\nPlease feel free to ask another question!`,
+          text: `**ABVP Narasinha Dutt College Unit Info:**\n\n- **Membership Drive:** Enroll online in the **Membership** tab for just **₹5** with instant digital ID.\n- **Campus Address:** 129, Belilious Road, Howrah.\n- **Help Desk:** Reach our student representatives via the Help Desk section on this page.\n\nPlease feel free to ask another question!`,
         },
       ]);
     } finally {
@@ -194,7 +194,7 @@ export const VidyarthiChatbot: React.FC = () => {
                     {
                       id: `welcome-${Date.now()}`,
                       role: 'model',
-                      text: `Conversation refreshed. How can I help you regarding **Narasimha Datta College** or the **₹5 Membership**?`,
+                      text: `Conversation refreshed. How can I help you regarding **Narasinha Dutt College** or the **₹5 Membership**?`,
                     },
                   ]);
                 }}

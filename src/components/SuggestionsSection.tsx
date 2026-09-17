@@ -80,7 +80,7 @@ export const SuggestionsSection: React.FC = () => {
                 Suggestion Received!
               </h3>
               <p className="text-sm text-slate-600 max-w-md mx-auto">
-                Thank you for contributing your perspective to make Narasimha Datta College a better campus. Our unit committee reviews all proposals periodically to frame official student memorandums.
+                Thank you for contributing your perspective to make Narasinha Dutt College a better campus. Our unit committee reviews all proposals periodically to frame official student memorandums.
               </p>
               <div className="pt-2">
                 <button

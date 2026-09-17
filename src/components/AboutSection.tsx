@@ -61,7 +61,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ settings }) => {
             Dedicated to Student Welfare & Nation Building
           </h2>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-            Understanding our role at Narasimha Datta College, Howrah: bridging students with campus administrative solutions, educational enrichment, and community responsibility.
+            Understanding our role at Narasinha Dutt College, Howrah: bridging students with campus administrative solutions, educational enrichment, and community responsibility.
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ settings }) => {
               </div>
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-display">
-                  Role of Narasimha Datta College Unit
+                  Role of Narasinha Dutt College Unit
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
                   Serving Howrah's premier undergraduate institution
@@ -115,7 +115,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ settings }) => {
             </div>
 
             <p className="text-sm text-slate-600 leading-relaxed">
-              At Narasimha Datta College (Belilious Road, Howrah), our college unit functions as an accessible student helpline. We strive to assist thousands of students navigating Calcutta University semester curricula, exam registration, scholarship verifications, and career pathways.
+              At Narasinha Dutt College (Belilious Road, Howrah), our college unit functions as an accessible student helpline. We strive to assist thousands of students navigating Calcutta University semester curricula, exam registration, scholarship verifications, and career pathways.
             </p>
 
             <p className="text-sm text-slate-600 leading-relaxed">

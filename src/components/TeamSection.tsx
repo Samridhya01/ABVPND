@@ -41,7 +41,7 @@ export const TeamSection: React.FC<TeamSectionProps> = ({ team, onOpenAdmin }) =
               Unit Office Bearers & Student Conveners
             </h2>
             <p className="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl">
-              Dedicated student volunteers coordinating campus welfare, academic inquiries, and activities across Narasimha Datta College.
+              Dedicated student volunteers coordinating campus welfare, academic inquiries, and activities across Narasinha Dutt College.
             </p>
           </div>
 

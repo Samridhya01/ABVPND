@@ -145,7 +145,7 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
             <span>Official Membership Drive 2026–27</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight font-display">
-            Join ABVP – Narasimha Datta College Unit
+            Join ABVP – Narasinha Dutt College Unit
           </h2>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
             Become a part of the world’s largest nationalist student movement. Contribute just <span className="font-bold text-orange-600">₹5 annual membership fee</span>, get your digital membership slip, and join campus welfare initiatives!
@@ -240,7 +240,7 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
               {/* Card Footer Motto */}
               <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-amber-300/90 font-semibold">
                 <span>ज्ञान • शील • एकता</span>
-                <span>Narasimha Datta College Unit, Howrah</span>
+                <span>Narasinha Dutt College Unit, Howrah</span>
               </div>
             </div>
 
@@ -590,7 +590,7 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
                 <div className="pt-2 border-t border-stone-100 flex items-center gap-2 text-slate-500 text-[11px]">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>
-                    Your details are verified by the ABVP Narasimha Datta College Unit committee. Digital membership slip is generated immediately.
+                    Your details are verified by the ABVP Narasinha Dutt College Unit committee. Digital membership slip is generated immediately.
                   </span>
                 </div>
               </form>

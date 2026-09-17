@@ -384,7 +384,7 @@ export const HelpDeskSection: React.FC<HelpDeskSectionProps> = ({ onOpenTracker 
                 Physical Help Desk Location
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                During semester admission and registration seasons, physical help desk canopies are set up by our unit volunteers near the <span className="font-semibold text-slate-800">Narasimha Datta College Main Entrance (Belilious Road)</span>.
+                During semester admission and registration seasons, physical help desk canopies are set up by our unit volunteers near the <span className="font-semibold text-slate-800">Narasinha Dutt College Main Entrance (Belilious Road)</span>.
               </p>
               <div className="pt-2 text-xs text-slate-500 space-y-1">
                 <div><span className="font-semibold text-slate-700">Timings:</span> 10:30 AM – 4:30 PM (College Working Days)</div>

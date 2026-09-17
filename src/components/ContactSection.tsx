@@ -102,7 +102,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
             Contact Us & Campus Location
           </h2>
           <p className="mt-2 text-slate-600 text-sm sm:text-base leading-relaxed">
-            Reach out to the ABVP Narasimha Datta College Unit coordinators for student inquiries, academic clarifications, or activity collaboration.
+            Reach out to the ABVP Narasinha Dutt College Unit coordinators for student inquiries, academic clarifications, or activity collaboration.
           </p>
         </div>
 
@@ -235,7 +235,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
               <div className="relative h-36 w-full rounded-xl overflow-hidden border border-stone-300 bg-stone-200">
                 {/* Stylized Google Map Visual */}
                 <iframe
-                  title="Narasimha Datta College Location"
+                  title="Narasinha Dutt College Location"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

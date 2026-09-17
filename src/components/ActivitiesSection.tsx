@@ -43,7 +43,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
               Activities & Student Initiatives
             </h2>
             <p className="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl">
-              From free admission assistance and blood donation drives to environmental campaigns and academic seminars across Narasimha Datta College.
+              From free admission assistance and blood donation drives to environmental campaigns and academic seminars across Narasinha Dutt College.
             </p>
           </div>
 

@@ -257,7 +257,7 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Narasimha Datta College Unit, Howrah • Session 2026-27
+                Narasinha Dutt College Unit, Howrah • Session 2026-27
               </p>
             </div>
           </div>
@@ -286,7 +286,7 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
                     Application Submitted Successfully!
                   </h4>
                   <p className="text-xs text-emerald-800 mt-0.5 leading-relaxed">
-                    Welcome to Akhil Bharatiya Vidyarthi Parishad, Narasimha Datta College Unit! Your membership card has been generated. The unit committee will verify your ₹5 UPI payment screenshot shortly.
+                    Welcome to Akhil Bharatiya Vidyarthi Parishad, Narasinha Dutt College Unit! Your membership card has been generated. The unit committee will verify your ₹5 UPI payment screenshot shortly.
                   </p>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
                         Akhil Bharatiya Vidyarthi Parishad
                       </div>
                       <div className="text-[11px] text-slate-300">
-                        Narasimha Datta College Unit • Howrah
+                        Narasinha Dutt College Unit • Howrah
                       </div>
                     </div>
                   </div>

@@ -70,7 +70,7 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              An active collegiate unit committed to constructive student welfare, campus problem resolution, blood donation, and cultural enrichment for the students of Narasimha Datta College.
+              An active collegiate unit committed to constructive student welfare, campus problem resolution, blood donation, and cultural enrichment for the students of Narasinha Dutt College.
             </p>
 
             {/* Social Media Row */}
@@ -282,7 +282,7 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <div className="text-xs text-slate-600 space-y-3 leading-relaxed max-h-[60vh] overflow-y-auto">
               <p>
-                The ABVP Narasimha Datta College Unit respects student privacy. Any personal information submitted through our Student Help Desk (such as Name, Email, Phone Number, Course, or attachments) is collected solely for the objective of:
+                The ABVP Narasinha Dutt College Unit respects student privacy. Any personal information submitted through our Student Help Desk (such as Name, Email, Phone Number, Course, or attachments) is collected solely for the objective of:
               </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Verifying and responding to reported academic or college issues.</li>
@@ -322,10 +322,10 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <div className="text-xs text-slate-600 space-y-3 leading-relaxed max-h-[60vh] overflow-y-auto">
               <p>
-                <strong>1. Non-Affiliation Declaration:</strong> This portal is owned and operated independently by the Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasimha Datta College Unit, Howrah. It does not purport to act as an official administrative authority or proxy of the Governing Body, Principal, or Teachers' Council of Narasimha Datta College.
+                <strong>1. Non-Affiliation Declaration:</strong> This portal is owned and operated independently by the Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasinha Dutt College Unit, Howrah. It does not purport to act as an official administrative authority or proxy of the Governing Body, Principal, or Teachers' Council of Narasinha Dutt College.
               </p>
               <p>
-                <strong>2. Informational Purpose:</strong> All notices, event details, and document guidelines published are intended for student convenience and educational awareness. Students are advised to also corroborate university examination schedules with official Calcutta University and Narasimha Datta College circulars.
+                <strong>2. Informational Purpose:</strong> All notices, event details, and document guidelines published are intended for student convenience and educational awareness. Students are advised to also corroborate university examination schedules with official Calcutta University and Narasinha Dutt College circulars.
               </p>
               <p>
                 <strong>3. Constructive Campus Atmosphere:</strong> We promote peaceful, democratic, and constructive campus interaction strictly in accordance with UGC guidelines and college codes of conduct.

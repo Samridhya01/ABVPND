@@ -11,9 +11,9 @@ import {
 } from '../types';
 
 export const initialSettings: UnitSettings = {
-  unitName: 'ABVP – Narasimha Datta College Unit',
+  unitName: 'ABVP – Narasinha Dutt College Unit',
   parentOrg: 'Akhil Bharatiya Vidyarthi Parishad (ABVP)',
-  collegeName: 'Narasimha Datta College',
+  collegeName: 'Narasinha Dutt College',
   collegeAddress: '129, Belilious Road, Kadamtala',
   city: 'Howrah',
   state: 'West Bengal',
@@ -40,7 +40,7 @@ export const initialSettings: UnitSettings = {
     activeVolunteers: 120,
   },
   disclaimer:
-    'This website is an independent digital information and student welfare platform maintained by the ABVP Narasimha Datta College Unit, Howrah. It does not represent an official institutional portal of the Narasimha Datta College administration unless explicitly authorized.',
+    'This website is an independent digital information and student welfare platform maintained by the ABVP Narasinha Dutt College Unit, Howrah. It does not represent an official institutional portal of the Narasinha Dutt College administration unless explicitly authorized.',
 };
 
 export const initialNotices: Notice[] = [
@@ -72,7 +72,7 @@ export const initialNotices: Notice[] = [
     date: '2026-09-02',
     category: 'Events',
     description: 'Annual inter-departmental speech and essay writing competition celebrating Swami Vivekananda’s message on youth leadership.',
-    details: 'Open to all undergraduate regular students of Narasimha Datta College. Attractive prizes, certificates of merit, and books will be distributed to winners.',
+    details: 'Open to all undergraduate regular students of Narasinha Dutt College. Attractive prizes, certificates of merit, and books will be distributed to winners.',
     isPinned: false,
     attachmentName: 'Youth_Day_Rules_Guidelines.pdf',
     attachmentSize: '310 KB',
@@ -94,7 +94,7 @@ export const initialNotices: Notice[] = [
     date: '2026-08-15',
     category: 'General',
     description: 'Important bulletin for newly admitted first-semester students regarding campus safety protocols and emergency helpline contacts.',
-    details: 'Narasimha Datta College strictly maintains a zero-tolerance policy towards ragging. Students facing any intimidation or harassment can report directly to our help desk or UGC anti-ragging portal.',
+    details: 'Narasinha Dutt College strictly maintains a zero-tolerance policy towards ragging. Students facing any intimidation or harassment can report directly to our help desk or UGC anti-ragging portal.',
     isPinned: false,
     attachmentName: 'Anti_Ragging_Handbook.pdf',
     attachmentSize: '540 KB',
@@ -456,7 +456,7 @@ export const initialDownloads: DownloadDocument[] = [
   },
   {
     id: 'doc-02',
-    title: 'Narasimha Datta College Anti-Ragging Undertaking Format',
+    title: 'Narasinha Dutt College Anti-Ragging Undertaking Format',
     category: 'Guidelines',
     fileType: 'PDF',
     fileSize: '450 KB',

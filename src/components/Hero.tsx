@@ -92,7 +92,7 @@ export const Hero: React.FC<HeroProps> = ({
                 Akhil Bharatiya Vidyarthi Parishad
               </span>
               <span className="bg-gradient-to-r from-amber-400 via-orange-500 to-amber-300 bg-clip-text text-transparent">
-                Narasimha Datta College Unit
+                Narasinha Dutt College Unit
               </span>
             </h1>
 
@@ -116,7 +116,7 @@ export const Hero: React.FC<HeroProps> = ({
 
             {/* Introductory Description */}
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
-              Empowering students of Narasimha Datta College with timely academic guidance, scholarship support, campus welfare advocacy, and meaningful community service. We stand with every student from admission to convocation.
+              Empowering students of Narasinha Dutt College with timely academic guidance, scholarship support, campus welfare advocacy, and meaningful community service. We stand with every student from admission to convocation.
             </p>
 
             {/* Primary Action Buttons */}
@@ -184,8 +184,8 @@ export const Hero: React.FC<HeroProps> = ({
                 {/* Visual Image with Saffron/Navy tone */}
                 <div className="relative h-64 sm:h-72 w-full rounded-xl overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80"
-                    alt="ABVP Narasimha Datta College Unit Activities"
+                    src="https://narasinhaduttcollege.edu.in/ws/wp-content/themes/innereye/images/adm.jpg"
+                    alt="ABVP Narasinha Dutt College Unit Activities"
                     className="w-full h-full object-cover brightness-95 contrast-105"
                     referrerPolicy="no-referrer"
                   />
@@ -196,7 +196,7 @@ export const Hero: React.FC<HeroProps> = ({
                     <div className="flex items-center justify-between text-xs">
                       <div>
                         <div className="font-semibold text-white">Student Welfare & Action</div>
-                        <div className="text-slate-400 text-[11px]">Narasimha Datta College, Belilious Rd</div>
+                        <div className="text-slate-400 text-[11px]">Narasinha Dutt College, Belilious Rd</div>
                       </div>
                       <span className="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-medium text-[10px]">
                         Active Unit

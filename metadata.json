@@ -1,6 +1,6 @@
 {
-  "name": "ABVP – Narasimha Datta College Unit",
-  "description": "Official digital platform of Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasimha Datta College Unit, Howrah, West Bengal.",
+  "name": "ABVP – Narasinha Dutt College Unit",
+  "description": "Official digital platform of Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasinha Dutt College Unit, Howrah, West Bengal.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

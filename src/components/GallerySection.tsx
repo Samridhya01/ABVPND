@@ -60,7 +60,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ images, onOpenAd
               Photo & Activity Gallery
             </h2>
             <p className="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl">
-              Capturing student welfare camps, blood donations, cultural festivals, and community service at Narasimha Datta College.
+              Capturing student welfare camps, blood donations, cultural festivals, and community service at Narasinha Dutt College.
             </p>
           </div>
 

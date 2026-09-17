@@ -58,10 +58,10 @@ app.post('/api/chat', async (req, res) => {
       parts: [{ text: m.text }],
     }));
 
-    const systemInstruction = `You are 'Vidyarthi Mitra' (Student Friend), the helpful, knowledgeable, and polite campus student AI assistant for Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasimha Datta College Unit, Howrah, West Bengal (affiliated with Calcutta University).
+    const systemInstruction = `You are 'Vidyarthi Mitra' (Student Friend), the helpful, knowledgeable, and polite campus student AI assistant for Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasinha Dutt College Unit, Howrah, West Bengal (affiliated with Calcutta University).
 
 College Profile & Context:
-- Institution: Narasimha Datta College, 129 Belilious Road, Howrah - 711101, West Bengal.
+- Institution: Narasinha Dutt College, 129 Belilious Road, Howrah - 711101, West Bengal.
 - Affiliation: University of Calcutta (CU).
 - Streams: B.A. (Honours & General), B.Sc. (Honours & General), B.Com. (Honours & General), and Post-Graduate courses (M.A., M.Sc.).
 - ABVP NDC Unit Activities: Annual Membership Drive (₹5 fee), Student Help Desk (free guidance during admissions, examination form fill-up, document verification), Book Bank, Blood Donation Camps, Mission Sahasi (self-defense for girls), Anti-ragging student helpline, and cultural competitions.
@@ -85,7 +85,7 @@ Search Grounding Instructions:
           },
         });
 
-        const replyText = response.text || 'I am here to assist you with Narasimha Datta College and ABVP student initiatives. How can I help you today?';
+        const replyText = response.text || 'I am here to assist you with Narasinha Dutt College and ABVP student initiatives. How can I help you today?';
         
         // Extract Google Search grounding citations if available
         const candidate = response.candidates?.[0];
@@ -131,7 +131,7 @@ Search Grounding Instructions:
     console.error('Chat endpoint error:', error);
     res.status(500).json({
       error: 'An error occurred while processing your request.',
-      reply: 'Namaskar! I am your Vidyarthi Mitra for ABVP Narasimha Datta College Unit. Please ask any question about college admissions, syllabus, exams, or ₹5 membership!',
+      reply: 'Namaskar! I am your Vidyarthi Mitra for ABVP Narasinha Dutt College Unit. Please ask any question about college admissions, syllabus, exams, or ₹5 membership!',
     });
   }
 });
@@ -141,7 +141,7 @@ function getFallbackAnswer(userQuery: string): string {
   const query = userQuery.toLowerCase();
 
   if (query.includes('membership') || query.includes('join') || query.includes('5') || query.includes('fee')) {
-    return `**ABVP Narasimha Datta College Unit Membership Drive (2026–27)**
+    return `**ABVP Narasinha Dutt College Unit Membership Drive (2026–27)**
 
 - **Nominal Fee:** Just **₹5** per academic year.
 - **How to Enroll:**
@@ -154,7 +154,7 @@ function getFallbackAnswer(userQuery: string): string {
   }
 
   if (query.includes('scholarship') || query.includes('svmcm') || query.includes('kanyashree') || query.includes('aikyashree')) {
-    return `**Major Scholarships for Narasimha Datta College Students:**
+    return `**Major Scholarships for Narasinha Dutt College Students:**
 
 1. **SVMCM (Swami Vivekananda Merit-cum-Means):**
    - Eligibility: Minimum 60% marks in previous qualifying examination. Family annual income under ₹2,50,000.
@@ -170,7 +170,7 @@ function getFallbackAnswer(userQuery: string): string {
   }
 
   if (query.includes('address') || query.includes('where') || query.includes('location') || query.includes('contact')) {
-    return `**Narasimha Datta College Campus & Contact Info:**
+    return `**Narasinha Dutt College Campus & Contact Info:**
 
 - **Address:** 129, Belilious Road, Kadamtala, Howrah – 711101, West Bengal.
 - **Affiliated To:** University of Calcutta (CU).
@@ -181,7 +181,7 @@ function getFallbackAnswer(userQuery: string): string {
   if (query.includes('exam') || query.includes('cu') || query.includes('syllabus') || query.includes('semester')) {
     return `**Calcutta University (CU) Academic & Examination Information:**
 
-- Narasimha Datta College operates under the **Curriculum & Credit Framework (CCF / NEP)** and CBCS semester pattern of the University of Calcutta.
+- Narasinha Dutt College operates under the **Curriculum & Credit Framework (CCF / NEP)** and CBCS semester pattern of the University of Calcutta.
 - Semester examinations are held twice a year (Odd Semester in Dec–Jan, Even Semester in June–July).
 - Exam forms, admit card issuance, and marksheet distribution are coordinated via the college central office.
 - Need guidance with previous years' CU question papers? Connect with our unit volunteers through the Help Desk tab!`;
@@ -189,7 +189,7 @@ function getFallbackAnswer(userQuery: string): string {
 
   return `**Namaskar! Welcome to Vidyarthi Mitra – ABVP NDC Unit Assistant**
 
-I am here to help all students of Narasimha Datta College with:
+I am here to help all students of Narasinha Dutt College with:
 - **₹5 Annual Student Membership** (apply directly on the Membership tab)
 - **Calcutta University Academic Updates & Syllabus**
 - **Scholarship Guidance (SVMCM, Kanyashree, Aikyashree, OASIS)**

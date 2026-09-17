@@ -204,7 +204,7 @@ export const AbvpLogo: React.FC<AbvpLogoProps> = ({
             </span>
           </div>
           <span className="text-[11px] text-slate-500 font-medium leading-none mt-0.5 truncate max-w-[190px] sm:max-w-none">
-            {subtext || 'Narasimha Datta College • Howrah'}
+            {subtext || 'Narasinha Dutt College • Howrah'}
           </span>
         </div>
       )}
