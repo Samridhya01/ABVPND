@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { UnitSettings } from '../types';
+import { NewsletterSubscription } from './NewsletterSubscription';
 
 interface FooterProps {
   settings: UnitSettings;
@@ -48,7 +49,10 @@ export const Footer: React.FC<FooterProps> = ({
   return (
     <footer id="footer" className="bg-slate-950 text-slate-400 text-xs border-t border-slate-800">
       {/* Upper Footer: Navigation & Details */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 lg:pt-16 lg:pb-14">
+        {/* Newsletter Subscription Component */}
+        <NewsletterSubscription />
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
           {/* Col 1 & 2: Brand & Mission */}
           <div className="lg:col-span-2 space-y-4">

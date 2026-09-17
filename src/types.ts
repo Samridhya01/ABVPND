@@ -144,3 +144,11 @@ export interface MembershipApplication {
   submittedAt: string;
   adminNotes?: string;
 }
+
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  subscribedAt: string;
+  interests?: string[];
+  status: 'Active' | 'Unsubscribed';
+}

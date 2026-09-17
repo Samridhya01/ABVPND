@@ -9,6 +9,7 @@ import {
   DownloadDocument,
   UnitSettings,
   MembershipApplication,
+  NewsletterSubscriber,
 } from '../types';
 import {
   initialSettings,
@@ -33,8 +34,33 @@ const STORAGE_KEYS = {
   GALLERY: 'abvp_ndc_gallery',
   DOWNLOADS: 'abvp_ndc_downloads',
   MEMBERSHIPS: 'abvp_ndc_memberships',
+  NEWSLETTER: 'abvp_ndc_newsletter',
   ADMIN_AUTH: 'abvp_ndc_admin_auth',
 };
+
+const initialNewsletterSubscribers: NewsletterSubscriber[] = [
+  {
+    id: 'sub-1',
+    email: 'souvik.das.ndc@gmail.com',
+    subscribedAt: '2026-09-10T11:20:00.000Z',
+    interests: ['CU Examination Schedules', 'Scholarship Alerts (SVMCM/Aikyashree)'],
+    status: 'Active',
+  },
+  {
+    id: 'sub-2',
+    email: 'priya.kundu.ndc@gmail.com',
+    subscribedAt: '2026-09-12T14:45:00.000Z',
+    interests: ['Campus Events & Seminars', 'Official Circulars & Notices'],
+    status: 'Active',
+  },
+  {
+    id: 'sub-3',
+    email: 'anirban.roy.ndc@gmail.com',
+    subscribedAt: '2026-09-16T09:10:00.000Z',
+    interests: ['Admission Guidance & Forms', 'Blood Donation & Welfare Drives'],
+    status: 'Active',
+  },
+];
 
 const initialMemberships: MembershipApplication[] = [
   {
@@ -339,6 +365,72 @@ export const storageService = {
     setItem(STORAGE_KEYS.MEMBERSHIPS, list);
   },
 
+  // --- Newsletter Subscribers ---
+  getNewsletterSubscribers(): NewsletterSubscriber[] {
+    return getItem<NewsletterSubscriber[]>(STORAGE_KEYS.NEWSLETTER, initialNewsletterSubscribers);
+  },
+  subscribeNewsletter(
+    email: string,
+    interests: string[] = []
+  ): { success: boolean; message: string; isNew: boolean; subscriber?: NewsletterSubscriber } {
+    const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      return { success: false, message: 'Please provide a valid email address.', isNew: false };
+    }
+    const list = this.getNewsletterSubscribers();
+    const existing = list.find((s) => s.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      if (existing.status === 'Unsubscribed') {
+        existing.status = 'Active';
+        if (interests.length > 0) existing.interests = interests;
+        setItem(STORAGE_KEYS.NEWSLETTER, list);
+        return {
+          success: true,
+          message: 'Welcome back! Your newsletter subscription has been reactivated.',
+          isNew: false,
+          subscriber: existing,
+        };
+      }
+      return {
+        success: true,
+        message: "You're already subscribed to NDC campus alerts! We'll keep you updated.",
+        isNew: false,
+        subscriber: existing,
+      };
+    }
+    const newSub: NewsletterSubscriber = {
+      id: `sub-${Date.now()}`,
+      email: cleanEmail,
+      subscribedAt: new Date().toISOString(),
+      interests: interests.length > 0 ? interests : ['All Campus Notices & Calcutta Univ Updates', 'Upcoming Events'],
+      status: 'Active',
+    };
+    list.unshift(newSub);
+    setItem(STORAGE_KEYS.NEWSLETTER, list);
+    return {
+      success: true,
+      message: 'Subscribed successfully! You will now receive official campus notices & event updates.',
+      isNew: true,
+      subscriber: newSub,
+    };
+  },
+  deleteNewsletterSubscriber(id: string): void {
+    const list = this.getNewsletterSubscribers().filter((s) => s.id !== id);
+    setItem(STORAGE_KEYS.NEWSLETTER, list);
+  },
+  exportNewsletterCSV(): string {
+    const list = this.getNewsletterSubscribers();
+    const headers = ['Email', 'Status', 'Interests', 'Subscribed Date'];
+    const rows = list.map((s) => [
+      `"${s.email}"`,
+      s.status,
+      `"${(s.interests || []).join('; ')}"`,
+      new Date(s.subscribedAt).toLocaleString(),
+    ]);
+    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  },
+
   // --- Admin Authentication (Client-side Session) ---
   isAdminLoggedIn(): boolean {
     if (typeof window === 'undefined') return false;
@@ -366,6 +458,7 @@ export const storageService = {
     setItem(STORAGE_KEYS.GALLERY, initialGallery);
     setItem(STORAGE_KEYS.DOWNLOADS, initialDownloads);
     setItem(STORAGE_KEYS.MEMBERSHIPS, initialMemberships);
+    setItem(STORAGE_KEYS.NEWSLETTER, initialNewsletterSubscribers);
   },
 
   exportDatabaseJSON(): string {
@@ -380,6 +473,7 @@ export const storageService = {
       gallery: this.getGallery(),
       downloads: this.getDownloads(),
       memberships: this.getMemberships(),
+      newsletters: this.getNewsletterSubscribers(),
       exportedAt: new Date().toISOString(),
     };
     return JSON.stringify(dump, null, 2);
