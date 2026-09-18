@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "UnitSettings": {
+      "title": "UnitSettings",
+      "description": "Global unit settings including official UPI ID, payment QR code, contact information, and banner alert",
+      "type": "object",
+      "properties": {
+        "unitName": { "type": "string" },
+        "collegeName": { "type": "string" },
+        "paymentQrUrl": { "type": "string" },
+        "upiId": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "bannerAlertActive": { "type": "boolean" },
+        "heroNotice": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "College unit notice or announcement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "details": { "type": "string" },
+        "isPinned": { "type": "boolean" }
+      },
+      "required": ["id", "title", "date", "category", "description"]
+    },
+    "UnitEvent": {
+      "title": "UnitEvent",
+      "description": "College unit event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "venue": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "posterUrl": { "type": "string" }
+      },
+      "required": ["id", "title", "date", "category", "description"]
+    },
+    "MembershipApplication": {
+      "title": "MembershipApplication",
+      "description": "Student membership application with ₹5 payment verification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "membershipId": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "semester": { "type": "string" },
+        "stream": { "type": "string" },
+        "paymentAmount": { "type": "number" },
+        "paymentScreenshotUrl": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["id", "membershipId", "name", "phone", "paymentAmount", "paymentStatus", "submittedAt"]
+    },
+    "HelpDeskTicket": {
+      "title": "HelpDeskTicket",
+      "description": "Student grievance or inquiry ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "referenceId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["id", "referenceId", "studentName", "phone", "description", "status", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "/unit_settings/main": {
+      "schema": "UnitSettings",
+      "description": "The central unit configuration and payment settings document"
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "College unit notices and official circulars"
+    },
+    "/events/{eventId}": {
+      "schema": "UnitEvent",
+      "description": "College unit events schedule"
+    },
+    "/membership_applications/{applicationId}": {
+      "schema": "MembershipApplication",
+      "description": "Student membership submissions and verification records"
+    },
+    "/helpdesk_tickets/{ticketId}": {
+      "schema": "HelpDeskTicket",
+      "description": "Student help desk requests and complaints"
+    }
+  }
+}

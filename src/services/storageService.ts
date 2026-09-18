@@ -22,6 +22,20 @@ import {
   initialGallery,
   initialDownloads,
 } from '../data/initialData';
+import {
+  db,
+  handleFirestoreError,
+  OperationType,
+} from './firebase';
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  getDoc,
+  getDocs,
+} from 'firebase/firestore';
 
 const STORAGE_KEYS = {
   SETTINGS: 'abvp_ndc_settings',
@@ -37,12 +51,12 @@ const STORAGE_KEYS = {
   NEWSLETTER: 'abvp_ndc_newsletter',
   ADMIN_AUTH: 'abvp_ndc_admin_auth',
   APP_VERSION: 'abvp_ndc_app_version',
+  CLOUD_SYNCED: 'abvp_ndc_cloud_synced',
 };
 
 const CURRENT_VERSION = 'v2_final_zero_launch';
 
 const initialNewsletterSubscribers: NewsletterSubscriber[] = [];
-
 const initialMemberships: MembershipApplication[] = [];
 
 // Automatic migration to start from 0 and apply official logo on final version launch
@@ -85,6 +99,158 @@ function notifyChange() {
   }
 }
 
+function sanitizeForFirestore<T extends object>(obj: T): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = sanitizeForFirestore(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result;
+}
+
+// Start Real-Time Firestore Synchronization
+let isFirestoreInitialized = false;
+
+function initFirestoreSync() {
+  if (typeof window === 'undefined' || isFirestoreInitialized) return;
+  isFirestoreInitialized = true;
+
+  try {
+    // 1. Sync Unit Settings (Central UPI ID, Payment QR, Contacts)
+    onSnapshot(
+      doc(db, 'unit_settings', 'main'),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const cloudData = snapshot.data() as UnitSettings;
+          const merged = { ...initialSettings, ...cloudData };
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
+          localStorage.setItem(STORAGE_KEYS.CLOUD_SYNCED, 'true');
+          notifyChange();
+        } else {
+          // Cloud empty: seed with current settings
+          const current = getItem<UnitSettings>(STORAGE_KEYS.SETTINGS, initialSettings);
+          setDoc(doc(db, 'unit_settings', 'main'), sanitizeForFirestore(current)).catch((err) => {
+            handleFirestoreError(err, OperationType.WRITE, 'unit_settings/main');
+          });
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, 'unit_settings/main');
+      }
+    );
+
+    // 2. Sync Notices
+    onSnapshot(
+      collection(db, 'notices'),
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const noticesList = snapshot.docs.map((d) => d.data() as Notice);
+          localStorage.setItem(STORAGE_KEYS.NOTICES, JSON.stringify(noticesList));
+          notifyChange();
+        } else {
+          // Seed initial notices if empty in cloud
+          initialNotices.forEach((n) => {
+            setDoc(doc(db, 'notices', n.id), sanitizeForFirestore(n)).catch((err) => {
+              handleFirestoreError(err, OperationType.WRITE, `notices/${n.id}`);
+            });
+          });
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'notices');
+      }
+    );
+
+    // 3. Sync Events
+    onSnapshot(
+      collection(db, 'events'),
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const eventsList = snapshot.docs.map((d) => d.data() as UnitEvent);
+          localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(eventsList));
+          notifyChange();
+        } else {
+          // Seed initial events if empty in cloud
+          initialEvents.forEach((ev) => {
+            setDoc(doc(db, 'events', ev.id), sanitizeForFirestore(ev)).catch((err) => {
+              handleFirestoreError(err, OperationType.WRITE, `events/${ev.id}`);
+            });
+          });
+        }
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'events');
+      }
+    );
+
+    // 4. Sync Membership Applications (Student Submissions & Payment Receipts)
+    onSnapshot(
+      collection(db, 'membership_applications'),
+      (snapshot) => {
+        const appsList = snapshot.docs.map((d) => d.data() as MembershipApplication);
+        localStorage.setItem(STORAGE_KEYS.MEMBERSHIPS, JSON.stringify(appsList));
+        notifyChange();
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'membership_applications');
+      }
+    );
+
+    // 5. Sync Help Desk Tickets
+    onSnapshot(
+      collection(db, 'helpdesk_tickets'),
+      (snapshot) => {
+        const ticketsList = snapshot.docs.map((d) => d.data() as HelpDeskTicket);
+        localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(ticketsList));
+        notifyChange();
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'helpdesk_tickets');
+      }
+    );
+
+    // 6. Sync Student Suggestions
+    onSnapshot(
+      collection(db, 'student_suggestions'),
+      (snapshot) => {
+        const suggestionsList = snapshot.docs.map((d) => d.data() as StudentSuggestion);
+        localStorage.setItem(STORAGE_KEYS.SUGGESTIONS, JSON.stringify(suggestionsList));
+        notifyChange();
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'student_suggestions');
+      }
+    );
+
+    // 7. Sync Newsletter Subscribers
+    onSnapshot(
+      collection(db, 'subscribers'),
+      (snapshot) => {
+        const subList = snapshot.docs.map((d) => d.data() as NewsletterSubscriber);
+        localStorage.setItem(STORAGE_KEYS.NEWSLETTER, JSON.stringify(subList));
+        notifyChange();
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'subscribers');
+      }
+    );
+  } catch (err) {
+    console.error('Failed to initialize Firestore sync', err);
+  }
+}
+
+// Auto-run in browser environment
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    initFirestoreSync();
+  }, 100);
+}
+
 function getItem<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -113,6 +279,10 @@ export const storageService = {
   },
   updateSettings(newSettings: UnitSettings): void {
     setItem(STORAGE_KEYS.SETTINGS, newSettings);
+    // Push immediately to Cloud Firestore
+    setDoc(doc(db, 'unit_settings', 'main'), sanitizeForFirestore(newSettings)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, 'unit_settings/main');
+    });
   },
 
   // --- Notices ---
@@ -128,10 +298,18 @@ export const storageService = {
       list.unshift(notice);
     }
     setItem(STORAGE_KEYS.NOTICES, list);
+    // Push to Cloud Firestore
+    setDoc(doc(db, 'notices', notice.id), sanitizeForFirestore(notice)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, `notices/${notice.id}`);
+    });
   },
   deleteNotice(id: string): void {
     const list = this.getNotices().filter((n) => n.id !== id);
     setItem(STORAGE_KEYS.NOTICES, list);
+    // Delete from Cloud Firestore
+    deleteDoc(doc(db, 'notices', id)).catch((err) => {
+      handleFirestoreError(err, OperationType.DELETE, `notices/${id}`);
+    });
   },
 
   // --- Events ---
@@ -147,10 +325,18 @@ export const storageService = {
       list.unshift(event);
     }
     setItem(STORAGE_KEYS.EVENTS, list);
+    // Push to Cloud Firestore
+    setDoc(doc(db, 'events', event.id), sanitizeForFirestore(event)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, `events/${event.id}`);
+    });
   },
   deleteEvent(id: string): void {
     const list = this.getEvents().filter((e) => e.id !== id);
     setItem(STORAGE_KEYS.EVENTS, list);
+    // Delete from Cloud Firestore
+    deleteDoc(doc(db, 'events', id)).catch((err) => {
+      handleFirestoreError(err, OperationType.DELETE, `events/${id}`);
+    });
   },
   registerForEvent(eventId: string): boolean {
     const list = this.getEvents();
@@ -158,6 +344,9 @@ export const storageService = {
     if (event) {
       event.registrationCount = (event.registrationCount || 0) + 1;
       setItem(STORAGE_KEYS.EVENTS, list);
+      setDoc(doc(db, 'events', eventId), sanitizeForFirestore(event), { merge: true }).catch((err) => {
+        handleFirestoreError(err, OperationType.UPDATE, `events/${eventId}`);
+      });
       return true;
     }
     return false;
@@ -221,6 +410,10 @@ export const storageService = {
     };
     list.unshift(newTicket);
     setItem(STORAGE_KEYS.TICKETS, list);
+    // Push to Cloud Firestore
+    setDoc(doc(db, 'helpdesk_tickets', newTicket.id), sanitizeForFirestore(newTicket)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, `helpdesk_tickets/${newTicket.id}`);
+    });
     return newTicket;
   },
   updateTicketStatus(id: string, status: HelpDeskTicket['status'], adminNotes?: string): void {
@@ -234,6 +427,9 @@ export const storageService = {
         timeStyle: 'short',
       });
       setItem(STORAGE_KEYS.TICKETS, list);
+      setDoc(doc(db, 'helpdesk_tickets', id), sanitizeForFirestore(ticket), { merge: true }).catch((err) => {
+        handleFirestoreError(err, OperationType.UPDATE, `helpdesk_tickets/${id}`);
+      });
     }
   },
   findTicketByReference(refId: string): HelpDeskTicket | undefined {
@@ -258,6 +454,9 @@ export const storageService = {
     };
     list.unshift(newSug);
     setItem(STORAGE_KEYS.SUGGESTIONS, list);
+    setDoc(doc(db, 'student_suggestions', newSug.id), sanitizeForFirestore(newSug)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, `student_suggestions/${newSug.id}`);
+    });
     return newSug;
   },
   updateSuggestionStatus(id: string, status: StudentSuggestion['status']): void {
@@ -266,6 +465,9 @@ export const storageService = {
     if (sug) {
       sug.status = status;
       setItem(STORAGE_KEYS.SUGGESTIONS, list);
+      setDoc(doc(db, 'student_suggestions', id), { status }, { merge: true }).catch((err) => {
+        handleFirestoreError(err, OperationType.UPDATE, `student_suggestions/${id}`);
+      });
     }
   },
 
@@ -326,6 +528,10 @@ export const storageService = {
     };
     list.unshift(newMembership);
     setItem(STORAGE_KEYS.MEMBERSHIPS, list);
+    // Push to Cloud Firestore
+    setDoc(doc(db, 'membership_applications', newMembership.id), sanitizeForFirestore(newMembership)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, `membership_applications/${newMembership.id}`);
+    });
     return newMembership;
   },
   updateMembershipStatus(
@@ -344,10 +550,19 @@ export const storageService = {
       return m;
     });
     setItem(STORAGE_KEYS.MEMBERSHIPS, list);
+    const target = list.find((m) => m.id === id);
+    if (target) {
+      setDoc(doc(db, 'membership_applications', id), sanitizeForFirestore(target), { merge: true }).catch((err) => {
+        handleFirestoreError(err, OperationType.UPDATE, `membership_applications/${id}`);
+      });
+    }
   },
   deleteMembership(id: string): void {
     const list = this.getMemberships().filter((m) => m.id !== id);
     setItem(STORAGE_KEYS.MEMBERSHIPS, list);
+    deleteDoc(doc(db, 'membership_applications', id)).catch((err) => {
+      handleFirestoreError(err, OperationType.DELETE, `membership_applications/${id}`);
+    });
   },
 
   // --- Newsletter Subscribers ---
@@ -370,6 +585,9 @@ export const storageService = {
         existing.status = 'Active';
         if (interests.length > 0) existing.interests = interests;
         setItem(STORAGE_KEYS.NEWSLETTER, list);
+        setDoc(doc(db, 'subscribers', existing.id), sanitizeForFirestore(existing), { merge: true }).catch((err) => {
+          handleFirestoreError(err, OperationType.UPDATE, `subscribers/${existing.id}`);
+        });
         return {
           success: true,
           message: 'Welcome back! Your newsletter subscription has been reactivated.',
@@ -393,6 +611,9 @@ export const storageService = {
     };
     list.unshift(newSub);
     setItem(STORAGE_KEYS.NEWSLETTER, list);
+    setDoc(doc(db, 'subscribers', newSub.id), sanitizeForFirestore(newSub)).catch((err) => {
+      handleFirestoreError(err, OperationType.WRITE, `subscribers/${newSub.id}`);
+    });
     return {
       success: true,
       message: 'Subscribed successfully! You will now receive official campus notices & event updates.',
@@ -403,6 +624,9 @@ export const storageService = {
   deleteNewsletterSubscriber(id: string): void {
     const list = this.getNewsletterSubscribers().filter((s) => s.id !== id);
     setItem(STORAGE_KEYS.NEWSLETTER, list);
+    deleteDoc(doc(db, 'subscribers', id)).catch((err) => {
+      handleFirestoreError(err, OperationType.DELETE, `subscribers/${id}`);
+    });
   },
   exportNewsletterCSV(): string {
     const list = this.getNewsletterSubscribers();
@@ -444,6 +668,14 @@ export const storageService = {
   updateLogo(newLogoUrl: string): void {
     const settings = this.getSettings();
     settings.logoUrl = newLogoUrl.trim();
+    this.updateSettings(settings);
+  },
+  updatePaymentQr(newQrUrl: string, newUpiId?: string): void {
+    const settings = this.getSettings();
+    settings.paymentQrUrl = newQrUrl.trim();
+    if (newUpiId !== undefined) {
+      settings.upiId = newUpiId.trim();
+    }
     this.updateSettings(settings);
   },
 

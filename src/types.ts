@@ -114,6 +114,8 @@ export interface UnitSettings {
   bannerAlertActive: boolean;
   logoUrl?: string;
   adminPasscode?: string;
+  paymentQrUrl?: string;
+  upiId?: string;
   socialLinks: {
     instagram: string;
     facebook: string;
@@ -152,5 +154,6 @@ export interface NewsletterSubscriber {
   email: string;
   subscribedAt: string;
   interests?: string[];
+  topics?: string[];
   status: 'Active' | 'Unsubscribed';
 }

@@ -21,9 +21,10 @@ import {
   IndianRupee,
   ExternalLink,
 } from 'lucide-react';
-import { MembershipApplication } from '../types';
+import { MembershipApplication, UnitSettings } from '../types';
 import { storageService } from '../services/storageService';
 import { AbvpLogo } from './AbvpLogo';
+import { compressImage } from '../utils/imageCompressor';
 
 interface MembershipRegistrationModalProps {
   isOpen: boolean;
@@ -79,7 +80,18 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
     'Other / Custom Stream',
   ];
 
-  const upiId = 'abvpndc.howrah@upi';
+  const [settings, setSettings] = useState<UnitSettings>(() => storageService.getSettings());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setSettings(storageService.getSettings());
+    };
+    window.addEventListener('abvp_data_updated', handleUpdate);
+    return () => window.removeEventListener('abvp_data_updated', handleUpdate);
+  }, []);
+
+  const upiId = settings.upiId || 'abvpndc.howrah@upi';
+  const qrCodeUrl = settings.paymentQrUrl;
 
   // Handle ESC key press to close modal
   useEffect(() => {
@@ -129,25 +141,28 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
     setTimeout(() => setCopiedUpi(false), 2000);
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setFormError('Please upload an image file (JPG, PNG, WebP).');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setFormError('File size exceeds 5MB. Please upload a smaller screenshot.');
       return;
     }
     setFormError(null);
     setScreenshotName(file.name);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        setScreenshotPreview(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await compressImage(file, 800, 800, 0.75);
+      setScreenshotPreview(compressedDataUrl);
+    } catch (err) {
+      console.error('Failed to compress payment screenshot', err);
+      // Fallback
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setScreenshotPreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -577,37 +592,46 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                   {/* Left: UPI QR & Details */}
                   <div className="sm:col-span-5 flex flex-col items-center justify-center p-3.5 bg-white rounded-xl border border-stone-200 shadow-sm text-center">
-                    <div className="p-2 bg-white rounded-lg border border-stone-200 shadow-inner">
-                      {/* SVG Dynamic UPI QR Preview */}
-                      <svg viewBox="0 0 140 140" className="w-28 h-28 text-slate-900">
-                        {/* Corner markers */}
-                        <rect x="10" y="10" width="35" height="35" fill="none" stroke="currentColor" strokeWidth="6" rx="4" />
-                        <rect x="20" y="20" width="15" height="15" fill="currentColor" rx="2" />
-                        <rect x="95" y="10" width="35" height="35" fill="none" stroke="currentColor" strokeWidth="6" rx="4" />
-                        <rect x="105" y="20" width="15" height="15" fill="currentColor" rx="2" />
-                        <rect x="10" y="95" width="35" height="35" fill="none" stroke="currentColor" strokeWidth="6" rx="4" />
-                        <rect x="20" y="105" width="15" height="15" fill="currentColor" rx="2" />
-                        {/* Data dots pattern */}
-                        <circle cx="60" cy="20" r="4" fill="currentColor" />
-                        <circle cx="75" cy="20" r="4" fill="currentColor" />
-                        <circle cx="60" cy="35" r="4" fill="currentColor" />
-                        <circle cx="80" cy="35" r="4" fill="currentColor" />
-                        <circle cx="20" cy="65" r="4" fill="currentColor" />
-                        <circle cx="35" cy="65" r="4" fill="currentColor" />
-                        <circle cx="60" cy="65" r="6" fill="#ea580c" />
-                        <circle cx="80" cy="65" r="4" fill="currentColor" />
-                        <circle cx="105" cy="65" r="4" fill="currentColor" />
-                        <circle cx="120" cy="65" r="4" fill="currentColor" />
-                        <circle cx="20" cy="80" r="4" fill="currentColor" />
-                        <circle cx="35" cy="80" r="4" fill="currentColor" />
-                        <circle cx="60" cy="80" r="4" fill="currentColor" />
-                        <circle cx="75" cy="95" r="4" fill="currentColor" />
-                        <circle cx="95" cy="95" r="4" fill="currentColor" />
-                        <circle cx="60" cy="115" r="4" fill="currentColor" />
-                        <circle cx="80" cy="115" r="4" fill="currentColor" />
-                        <circle cx="105" cy="115" r="4" fill="currentColor" />
-                        <circle cx="120" cy="115" r="4" fill="currentColor" />
-                      </svg>
+                    <div className="p-2 bg-white rounded-lg border border-stone-200 shadow-inner flex items-center justify-center">
+                      {qrCodeUrl ? (
+                        <img
+                          src={qrCodeUrl}
+                          alt="Official ABVP UPI QR Code"
+                          className="w-28 h-28 object-contain"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        /* SVG Dynamic UPI QR Preview */
+                        <svg viewBox="0 0 140 140" className="w-28 h-28 text-slate-900">
+                          {/* Corner markers */}
+                          <rect x="10" y="10" width="35" height="35" fill="none" stroke="currentColor" strokeWidth="6" rx="4" />
+                          <rect x="20" y="20" width="15" height="15" fill="currentColor" rx="2" />
+                          <rect x="95" y="10" width="35" height="35" fill="none" stroke="currentColor" strokeWidth="6" rx="4" />
+                          <rect x="105" y="20" width="15" height="15" fill="currentColor" rx="2" />
+                          <rect x="10" y="95" width="35" height="35" fill="none" stroke="currentColor" strokeWidth="6" rx="4" />
+                          <rect x="20" y="105" width="15" height="15" fill="currentColor" rx="2" />
+                          {/* Data dots pattern */}
+                          <circle cx="60" cy="20" r="4" fill="currentColor" />
+                          <circle cx="75" cy="20" r="4" fill="currentColor" />
+                          <circle cx="60" cy="35" r="4" fill="currentColor" />
+                          <circle cx="80" cy="35" r="4" fill="currentColor" />
+                          <circle cx="20" cy="65" r="4" fill="currentColor" />
+                          <circle cx="35" cy="65" r="4" fill="currentColor" />
+                          <circle cx="60" cy="65" r="6" fill="#ea580c" />
+                          <circle cx="80" cy="65" r="4" fill="currentColor" />
+                          <circle cx="105" cy="65" r="4" fill="currentColor" />
+                          <circle cx="120" cy="65" r="4" fill="currentColor" />
+                          <circle cx="20" cy="80" r="4" fill="currentColor" />
+                          <circle cx="35" cy="80" r="4" fill="currentColor" />
+                          <circle cx="60" cy="80" r="4" fill="currentColor" />
+                          <circle cx="75" cy="95" r="4" fill="currentColor" />
+                          <circle cx="95" cy="95" r="4" fill="currentColor" />
+                          <circle cx="60" cy="115" r="4" fill="currentColor" />
+                          <circle cx="80" cy="115" r="4" fill="currentColor" />
+                          <circle cx="105" cy="115" r="4" fill="currentColor" />
+                          <circle cx="120" cy="115" r="4" fill="currentColor" />
+                        </svg>
+                      )}
                     </div>
 
                     <div className="mt-2 text-[10px] text-slate-500 font-medium">

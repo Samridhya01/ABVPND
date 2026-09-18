@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Unit settings: contains official UPI ID, payment QR URL, and college contact details
+    match /unit_settings/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Notices and announcements
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if isValidId(noticeId);
+    }
+
+    // College and Unit Events
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isValidId(eventId);
+    }
+
+    // Membership Applications (Student submissions and Admin approvals)
+    match /membership_applications/{appId} {
+      allow read, write: if isValidId(appId);
+    }
+
+    // Student Helpdesk Tickets
+    match /helpdesk_tickets/{ticketId} {
+      allow read, write: if isValidId(ticketId);
+    }
+
+    // Newsletter Subscribers
+    match /subscribers/{subId} {
+      allow read, write: if isValidId(subId);
+    }
+
+    // Student Suggestions
+    match /student_suggestions/{sugId} {
+      allow read, write: if isValidId(sugId);
+    }
+
+    // Default safety deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

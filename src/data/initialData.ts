@@ -26,6 +26,8 @@ export const initialSettings: UnitSettings = {
   bannerAlertActive: true,
   logoUrl: 'https://i.ibb.co/6R3N6ppb/kro-D8r-f-400x400.jpg',
   adminPasscode: 'ABVP@Samridhya',
+  paymentQrUrl: '',
+  upiId: 'abvpndc.howrah@upi',
   socialLinks: {
     instagram: 'https://instagram.com/abvp_ndc_unit',
     facebook: 'https://facebook.com/abvp.ndc.howrah',

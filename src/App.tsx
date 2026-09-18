@@ -123,7 +123,7 @@ export default function App() {
         />
 
         {/* 2. About Section */}
-        <AboutSection />
+        <AboutSection settings={settings} />
 
         {/* 2.5. Official Membership Drive Section (₹5) */}
         <MembershipSection

@@ -15,13 +15,15 @@ import { EventRegisterModal } from './EventRegisterModal';
 interface EventsSectionProps {
   events: UnitEvent[];
   onOpenAdmin: () => void;
-  onRefreshEvents: () => void;
+  onRefreshEvents?: () => void;
+  onRegisterEvent?: (event: UnitEvent) => void;
 }
 
 export const EventsSection: React.FC<EventsSectionProps> = ({
   events,
   onOpenAdmin,
   onRefreshEvents,
+  onRegisterEvent,
 }) => {
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Past'>('Upcoming');
   const [registeringEvent, setRegisteringEvent] = useState<UnitEvent | null>(null);

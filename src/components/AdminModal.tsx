@@ -29,6 +29,9 @@ import {
   Key,
   RefreshCw,
   AlertTriangle,
+  QrCode,
+  IndianRupee,
+  Check,
 } from 'lucide-react';
 import {
   Notice,
@@ -44,6 +47,7 @@ import {
   NewsletterSubscriber,
 } from '../types';
 import { storageService } from '../services/storageService';
+import { compressImage } from '../utils/imageCompressor';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -81,13 +85,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'memberships' | 'notices' | 'events' | 'team' | 'tickets' | 'suggestions' | 'gallery' | 'downloads' | 'newsletter' | 'settings'
+    'overview' | 'memberships' | 'qrcode' | 'notices' | 'events' | 'team' | 'tickets' | 'suggestions' | 'gallery' | 'downloads' | 'newsletter' | 'settings'
   >('overview');
 
   const [memberships, setMemberships] = useState<MembershipApplication[]>(storageService.getMemberships());
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>(storageService.getNewsletterSubscribers());
   const [copySuccess, setCopySuccess] = useState(false);
   const [viewingScreenshot, setViewingScreenshot] = useState<string | null>(null);
+  const [qrUploadSuccess, setQrUploadSuccess] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [isDraggingQr, setIsDraggingQr] = useState(false);
 
   React.useEffect(() => {
     const handleUpdate = () => {
@@ -141,6 +148,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       ...s,
       adminPasscode: s.adminPasscode || 'ABVP@Samridhya',
       logoUrl: s.logoUrl || 'https://i.ibb.co/6R3N6ppb/kro-D8r-f-400x400.jpg',
+      paymentQrUrl: s.paymentQrUrl || '',
+      upiId: s.upiId || 'abvpndc.howrah@upi',
     };
   });
 
@@ -178,44 +187,114 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   };
 
   // Upload handler for Team Member Photo (supports local file upload via FileReader)
-  const handleMemberPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMemberPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Photo file is too large (max 3MB). Please choose a compressed photo.');
-      return;
+    try {
+      const compressed = await compressImage(file, 500, 500, 0.8);
+      setNewMember((prev) => ({
+        ...prev,
+        photoUrl: compressed,
+      }));
+    } catch (err) {
+      console.error('Failed to compress member photo', err);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setNewMember((prev) => ({
+            ...prev,
+            photoUrl: event.target!.result as string,
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setNewMember((prev) => ({
-          ...prev,
-          photoUrl: event.target!.result as string,
-        }));
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   // Upload handler for Menubar / Unit Logo Photo (supports local file upload via FileReader)
-  const handleMenubarLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMenubarLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Logo file is too large (max 3MB). Please choose a compressed image.');
+    try {
+      const compressed = await compressImage(file, 400, 400, 0.85);
+      setTempSettings((prev) => ({ ...prev, logoUrl: compressed }));
+      storageService.updateLogo(compressed);
+      setLogoUpdateSuccess(true);
+      setTimeout(() => setLogoUpdateSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to compress logo', err);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const dataUrl = event.target.result as string;
+          setTempSettings((prev) => ({ ...prev, logoUrl: dataUrl }));
+          storageService.updateLogo(dataUrl);
+          setLogoUpdateSuccess(true);
+          setTimeout(() => setLogoUpdateSuccess(false), 3000);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Upload and QR code handlers for UPI / Payment QR code
+  const processQrFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setQrError('Please select a valid image file (PNG, JPG, WebP, etc.).');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        const dataUrl = event.target.result as string;
-        setTempSettings((prev) => ({ ...prev, logoUrl: dataUrl }));
-        storageService.updateLogo(dataUrl);
-        setLogoUpdateSuccess(true);
-        setTimeout(() => setLogoUpdateSuccess(false), 3000);
-      }
-    };
-    reader.readAsDataURL(file);
+    setQrError(null);
+    try {
+      const compressedDataUrl = await compressImage(file, 800, 800, 0.85);
+      setTempSettings((prev) => ({ ...prev, paymentQrUrl: compressedDataUrl }));
+      storageService.updatePaymentQr(compressedDataUrl, tempSettings.upiId);
+      setQrUploadSuccess(true);
+      setTimeout(() => setQrUploadSuccess(false), 3500);
+    } catch (err) {
+      console.error('Failed to compress QR image', err);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const dataUrl = event.target.result as string;
+          setTempSettings((prev) => ({ ...prev, paymentQrUrl: dataUrl }));
+          storageService.updatePaymentQr(dataUrl, tempSettings.upiId);
+          setQrUploadSuccess(true);
+          setTimeout(() => setQrUploadSuccess(false), 3500);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleQrPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processQrFile(file);
+  };
+
+  const handleQrDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingQr(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processQrFile(file);
+    }
+  };
+
+  const handleSaveQrDetails = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    storageService.updatePaymentQr(tempSettings.paymentQrUrl || '', tempSettings.upiId);
+    setQrUploadSuccess(true);
+    setTimeout(() => setQrUploadSuccess(false), 3500);
+  };
+
+  const handleResetQr = () => {
+    if (confirm('Reset QR code to system default? This will restore the default vector QR code preview on the website.')) {
+      setTempSettings((prev) => ({ ...prev, paymentQrUrl: '' }));
+      storageService.updatePaymentQr('', tempSettings.upiId);
+      setQrUploadSuccess(true);
+      setTimeout(() => setQrUploadSuccess(false), 3500);
+    }
   };
 
   // Start from 0: clears live user submissions
@@ -447,7 +526,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base sm:text-lg font-bold font-display text-white">
                   ABVP NDC Unit Admin Portal
                 </h3>
@@ -456,6 +535,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     Active Session
                   </span>
                 )}
+                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  Cloud Database Synced
+                </span>
               </div>
               <p className="text-xs text-slate-400">
                 Manage notices, events, team members, help tickets, and unit settings
@@ -545,6 +628,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               {[
                 { id: 'overview', label: 'Overview', icon: ShieldCheck, badge: null },
                 { id: 'memberships', label: 'Memberships (₹5)', icon: IdCard, badge: memberships.length },
+                { id: 'qrcode', label: 'Payment QR Code', icon: QrCode, badge: tempSettings.paymentQrUrl ? 'Uploaded' : null },
                 { id: 'notices', label: 'Notices', icon: Bell, badge: notices.length },
                 { id: 'events', label: 'Events', icon: Calendar, badge: events.length },
                 { id: 'team', label: 'Team', icon: Users, badge: team.length },
@@ -706,6 +790,49 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     </div>
                   </div>
 
+                  {/* Payment QR Code Banner / Quick Access */}
+                  <div className="p-3.5 bg-gradient-to-r from-orange-50 via-amber-50 to-stone-50 rounded-xl border border-orange-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-lg bg-white border border-stone-300 p-1 flex items-center justify-center shrink-0 shadow-xs">
+                        {tempSettings.paymentQrUrl ? (
+                          <img
+                            src={tempSettings.paymentQrUrl}
+                            alt="Payment QR"
+                            className="w-full h-full object-contain rounded"
+                          />
+                        ) : (
+                          <QrCode className="w-6 h-6 text-orange-600" />
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">Official ₹5 UPI Payment QR Code</span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              tempSettings.paymentQrUrl
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : 'bg-stone-200 text-slate-700'
+                            }`}
+                          >
+                            {tempSettings.paymentQrUrl ? '✓ Custom QR Uploaded' : 'System Default Graphic'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          Active UPI ID: <code className="font-mono font-bold text-slate-800">{tempSettings.upiId || 'abvpndc.howrah@upi'}</code> • Students scan this to submit payment proofs
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('qrcode')}
+                      className="px-3.5 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition-colors shrink-0"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload / Manage QR Code</span>
+                    </button>
+                  </div>
+
                   {/* Memberships Table */}
                   <div className="overflow-x-auto border border-stone-200 rounded-xl">
                     <table className="w-full text-left text-xs text-slate-700">
@@ -819,6 +946,320 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         )}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: PAYMENT QR CODE */}
+              {activeTab === 'qrcode' && (
+                <div className="space-y-6">
+                  {/* Header & Status */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-stone-200">
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-900 font-display flex items-center gap-2">
+                        <QrCode className="w-5 h-5 text-orange-600" />
+                        <span>Official Payment QR Code & UPI Configuration</span>
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Upload your unit's official UPI QR code photo and set the active UPI ID displayed to students for ₹5 membership fees and verification.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveQrDetails()}
+                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 shadow transition-colors"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Save & Apply QR Code</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Feedback Banners */}
+                  {qrUploadSuccess && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Official UPI QR Code & Payment configuration updated successfully and live across the website!</span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+                        Live Active
+                      </span>
+                    </div>
+                  )}
+
+                  {qrError && (
+                    <div className="p-3 bg-rose-50 border border-rose-300 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2 shadow-xs">
+                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span>{qrError}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left Column: Live Student Interface Simulation Preview */}
+                    <div className="lg:col-span-5 space-y-4">
+                      <div className="bg-gradient-to-b from-stone-100 to-stone-50 rounded-2xl border border-stone-200 p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-200">
+                          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <Eye className="w-3.5 h-3.5 text-orange-600" />
+                            Live Student Payment View
+                          </span>
+                          <span className="text-[10px] bg-orange-100 text-orange-800 font-bold px-2 py-0.5 rounded-full">
+                            ₹5 Fee Drive
+                          </span>
+                        </div>
+
+                        {/* Simulated student card */}
+                        <div className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm flex flex-col items-center text-center space-y-3">
+                          <div className="w-full flex items-center justify-between text-xs pb-1 border-b border-stone-100">
+                            <span className="font-bold text-slate-800">Step 1: Scan & Pay ₹5</span>
+                            <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[11px]">
+                              ₹5.00 INR
+                            </span>
+                          </div>
+
+                          <div className="relative p-3 bg-white rounded-xl shadow-md border border-stone-300 group">
+                            {tempSettings.paymentQrUrl ? (
+                              <div className="w-44 h-44 flex items-center justify-center overflow-hidden rounded-lg bg-white">
+                                <img
+                                  src={tempSettings.paymentQrUrl}
+                                  alt="ABVP Official UPI Payment QR Code"
+                                  className="w-full h-full object-contain"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            ) : (
+                              /* Default stylized graphic */
+                              <svg viewBox="0 0 160 160" className="w-40 h-40" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="160" height="160" fill="#ffffff" />
+                                <rect x="10" y="10" width="40" height="40" fill="#0f172a" rx="4" />
+                                <rect x="16" y="16" width="28" height="28" fill="#ffffff" rx="2" />
+                                <rect x="22" y="22" width="16" height="16" fill="#ea580c" rx="2" />
+                                <rect x="110" y="10" width="40" height="40" fill="#0f172a" rx="4" />
+                                <rect x="116" y="16" width="28" height="28" fill="#ffffff" rx="2" />
+                                <rect x="122" y="22" width="16" height="16" fill="#ea580c" rx="2" />
+                                <rect x="10" y="110" width="40" height="40" fill="#0f172a" rx="4" />
+                                <rect x="16" y="116" width="28" height="28" fill="#ffffff" rx="2" />
+                                <rect x="22" y="122" width="16" height="16" fill="#ea580c" rx="2" />
+                                <rect x="58" y="15" width="8" height="8" fill="#0f172a" />
+                                <rect x="74" y="15" width="8" height="8" fill="#0f172a" />
+                                <rect x="90" y="15" width="8" height="8" fill="#0f172a" />
+                                <rect x="58" y="31" width="8" height="8" fill="#0f172a" />
+                                <rect x="74" y="31" width="8" height="8" fill="#ea580c" />
+                                <rect x="90" y="31" width="8" height="8" fill="#0f172a" />
+                                <rect x="58" y="47" width="8" height="8" fill="#0f172a" />
+                                <rect x="90" y="47" width="8" height="8" fill="#0f172a" />
+                                <rect x="15" y="58" width="8" height="8" fill="#0f172a" />
+                                <rect x="31" y="58" width="8" height="8" fill="#0f172a" />
+                                <rect x="47" y="58" width="8" height="8" fill="#0f172a" />
+                                <rect x="105" y="58" width="8" height="8" fill="#0f172a" />
+                                <rect x="121" y="58" width="8" height="8" fill="#ea580c" />
+                                <rect x="137" y="58" width="8" height="8" fill="#0f172a" />
+                                <circle cx="80" cy="80" r="22" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
+                                <text x="80" y="84" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="sans-serif">ABVP ₹5</text>
+                                <rect x="58" y="105" width="8" height="8" fill="#0f172a" />
+                                <rect x="74" y="105" width="8" height="8" fill="#ea580c" />
+                                <rect x="90" y="105" width="8" height="8" fill="#0f172a" />
+                                <rect x="58" y="121" width="8" height="8" fill="#0f172a" />
+                                <rect x="90" y="121" width="8" height="8" fill="#0f172a" />
+                                <rect x="105" y="121" width="8" height="8" fill="#0f172a" />
+                                <rect x="121" y="121" width="8" height="8" fill="#0f172a" />
+                                <rect x="137" y="121" width="8" height="8" fill="#ea580c" />
+                                <rect x="105" y="137" width="8" height="8" fill="#0f172a" />
+                                <rect x="137" y="137" width="8" height="8" fill="#0f172a" />
+                              </svg>
+                            )}
+
+                            <div className="absolute inset-x-0 -bottom-3 flex justify-center">
+                              <span className="px-2 py-0.5 rounded-full bg-orange-600 text-white text-[10px] font-bold shadow">
+                                Scan with GPay / PhonePe / Paytm
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] text-slate-500 pt-2 max-w-xs">
+                            Scan above or transfer ₹5 to unit UPI ID, take screenshot of successful transaction, and attach in form.
+                          </p>
+
+                          {/* UPI ID Pill */}
+                          <div className="w-full flex items-center justify-between p-2.5 bg-stone-50 rounded-lg border border-stone-200 text-xs">
+                            <div className="text-left">
+                              <span className="text-[10px] text-slate-400 block font-semibold">Official UPI ID:</span>
+                              <span className="font-mono font-bold text-slate-900">{tempSettings.upiId || 'abvpndc.howrah@upi'}</span>
+                            </div>
+                            <span className="px-2 py-1 bg-stone-200 rounded text-slate-600 font-semibold text-[11px] flex items-center gap-1">
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Quick preview actions */}
+                        <div className="pt-3 flex flex-wrap items-center justify-between gap-2">
+                          {tempSettings.paymentQrUrl ? (
+                            <a
+                              href={tempSettings.paymentQrUrl}
+                              download="ABVP_NDC_UPI_Payment_QR.png"
+                              className="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-slate-800 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5 text-slate-600" />
+                              <span>Download Active QR</span>
+                            </a>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">No custom QR image uploaded yet</span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={handleResetQr}
+                            className="px-3 py-1.5 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            Reset to Default Graphic
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Upload QR Code Operations & UPI Configuration */}
+                    <div className="lg:col-span-7 space-y-5">
+                      {/* Upload Operation Card */}
+                      <div className="bg-stone-50 rounded-2xl border border-stone-200 p-5 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 rounded-xl bg-orange-600 text-white shadow-xs">
+                            <Upload className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-slate-900 text-sm">Upload QR Code from Computer or Phone</h5>
+                            <p className="text-xs text-slate-500">
+                              Upload your Google Pay, PhonePe, Paytm, or BHIM UPI merchant/personal QR code
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Drag and Drop Zone */}
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsDraggingQr(true);
+                          }}
+                          onDragLeave={() => setIsDraggingQr(false)}
+                          onDrop={handleQrDrop}
+                          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                            isDraggingQr
+                              ? 'border-orange-500 bg-orange-50/80 scale-[1.01]'
+                              : 'border-stone-300 hover:border-orange-400 bg-white'
+                          }`}
+                        >
+                          <input
+                            type="file"
+                            id="qr-file-upload-input"
+                            accept="image/*"
+                            onChange={handleQrPhotoUpload}
+                            className="hidden"
+                          />
+
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                              <Camera className="w-6 h-6" />
+                            </div>
+                            <div className="text-xs text-slate-700">
+                              <label
+                                htmlFor="qr-file-upload-input"
+                                className="font-bold text-orange-600 hover:text-orange-700 cursor-pointer underline underline-offset-2"
+                              >
+                                Click here to browse
+                              </label>{' '}
+                              or drag and drop your QR code image
+                            </div>
+                            <p className="text-[11px] text-slate-400">
+                              Supports PNG, JPG, JPEG, WebP • Max 5MB • Instant automatic update
+                            </p>
+                            <label
+                              htmlFor="qr-file-upload-input"
+                              className="mt-2 px-4 py-2 bg-slate-950 hover:bg-slate-800 text-amber-400 text-xs font-bold rounded-lg cursor-pointer flex items-center gap-2 shadow-xs transition-colors"
+                            >
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Select QR Image File</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Direct URL Alternative */}
+                        <div className="space-y-1.5 pt-1">
+                          <label className="text-xs font-bold text-slate-800 block">
+                            Or Paste Direct Image Link (Image URL)
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={tempSettings.paymentQrUrl || ''}
+                              onChange={(e) => setTempSettings({ ...tempSettings, paymentQrUrl: e.target.value })}
+                              placeholder="https://example.com/abvp-upi-qr.png or ImgBB / PostImages URL"
+                              className="flex-1 p-2 bg-white border border-stone-300 rounded-lg text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSaveQrDetails()}
+                              className="px-3 py-2 bg-stone-200 hover:bg-stone-300 text-slate-800 rounded-lg font-bold text-xs shrink-0 transition-colors"
+                            >
+                              Apply URL
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-slate-500">
+                            Accepts any direct image link from ImgBB, PostImages, Google Drive, or personal server.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Official UPI ID Settings */}
+                      <div className="bg-stone-50 rounded-2xl border border-stone-200 p-5 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 rounded-xl bg-slate-900 text-amber-400 shadow-xs">
+                            <IndianRupee className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-slate-900 text-sm">Official UPI ID (VPA)</h5>
+                            <p className="text-xs text-slate-500">
+                              UPI handle displayed for manual transfers (GPay / PhonePe / Paytm / BHIM)
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={tempSettings.upiId || ''}
+                            onChange={(e) => setTempSettings({ ...tempSettings, upiId: e.target.value })}
+                            placeholder="e.g. abvpndc.howrah@upi or 9876543210@paytm"
+                            className="w-full p-2.5 bg-white font-mono font-bold text-sm text-slate-900 border border-stone-300 rounded-lg"
+                          />
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <span>Default: <code className="font-mono font-semibold text-slate-700">abvpndc.howrah@upi</code></span>
+                            <button
+                              type="button"
+                              onClick={() => setTempSettings({ ...tempSettings, upiId: 'abvpndc.howrah@upi' })}
+                              className="text-orange-600 hover:underline font-semibold"
+                            >
+                              Reset to default UPI ID
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Save Action */}
+                        <div className="pt-2 flex items-center justify-end gap-3 border-t border-stone-200">
+                          <button
+                            type="button"
+                            onClick={() => handleSaveQrDetails()}
+                            className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all hover:shadow-lg"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Save QR Code & UPI Details</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1788,6 +2229,96 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                             placeholder="Direct image URL (e.g., https://...)"
                             className="w-full p-2 bg-white border border-stone-300 rounded-lg text-xs"
                           />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment & Donation UPI QR Code Card */}
+                  <div className="p-4 bg-amber-50/60 rounded-xl border border-amber-200/80 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-orange-600 text-white">
+                          <QrCode className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h6 className="font-bold text-slate-900 text-xs">Official UPI QR Code & Payment Details</h6>
+                          <p className="text-[11px] text-slate-600">
+                            Configure the QR code displayed to students for ₹5 membership fees and verification.
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('qrcode')}
+                        className="px-2.5 py-1 rounded bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+                      >
+                        Open Full QR Studio →
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-1">
+                      {/* Live QR Thumbnail */}
+                      <div className="w-24 h-24 rounded-xl border border-stone-300 bg-white p-1.5 shrink-0 flex items-center justify-center shadow-xs">
+                        {tempSettings.paymentQrUrl ? (
+                          <img
+                            src={tempSettings.paymentQrUrl}
+                            alt="Active Payment QR"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <QrCode className="w-8 h-8 text-orange-600 mx-auto" />
+                            <span className="text-[9px] text-slate-500 font-bold block mt-0.5">Default SVG</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Controls */}
+                      <div className="flex-1 space-y-2 text-xs w-full">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label className="px-3 py-2 bg-slate-950 hover:bg-slate-800 text-amber-400 rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1.5 shadow-xs transition-colors">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload New QR Image</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleQrPhotoUpload}
+                              className="hidden"
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={handleResetQr}
+                            className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-semibold text-xs border border-stone-300 transition-colors"
+                          >
+                            Reset to Default QR
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-[10px] text-slate-500 block font-semibold">UPI ID:</span>
+                            <input
+                              type="text"
+                              value={tempSettings.upiId || ''}
+                              onChange={(e) => setTempSettings({ ...tempSettings, upiId: e.target.value })}
+                              placeholder="e.g. abvpndc.howrah@upi"
+                              className="w-full p-2 bg-white border border-stone-300 rounded-lg text-xs font-mono font-bold"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-500 block font-semibold">Direct QR Image URL:</span>
+                            <input
+                              type="text"
+                              value={tempSettings.paymentQrUrl || ''}
+                              onChange={(e) => setTempSettings({ ...tempSettings, paymentQrUrl: e.target.value })}
+                              placeholder="https://... or ImgBB link"
+                              className="w-full p-2 bg-white border border-stone-300 rounded-lg text-xs"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

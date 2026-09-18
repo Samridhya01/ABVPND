@@ -235,8 +235,12 @@ export const Footer: React.FC<FooterProps> = ({
       {/* Bottom Bar: Copyright & Terms */}
       <div className="border-t border-slate-900 bg-slate-950 py-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
-          <div>
-            © {new Date().getFullYear()} {settings.unitName}. All rights reserved. (ज्ञान • शील • एकता)
+          <div className="flex items-center gap-2 flex-wrap">
+            <span>© {new Date().getFullYear()} {settings.unitName}. All rights reserved.</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Cloud Synced
+            </span>
           </div>
 
           <div className="flex items-center gap-4">

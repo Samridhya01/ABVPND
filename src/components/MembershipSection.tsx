@@ -15,8 +15,10 @@ import {
   Printer,
   Sparkles,
   ArrowRight,
+  Eye,
+  X,
 } from 'lucide-react';
-import { MembershipApplication } from '../types';
+import { MembershipApplication, UnitSettings } from '../types';
 import { storageService } from '../services/storageService';
 import { AbvpLogo } from './AbvpLogo';
 
@@ -68,7 +70,19 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
     'Post-Graduate / Other',
   ];
 
-  const upiId = 'abvpndc.howrah@upi';
+  const [settings, setSettings] = useState<UnitSettings>(() => storageService.getSettings());
+  const [viewingQrModal, setViewingQrModal] = useState(false);
+
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setSettings(storageService.getSettings());
+    };
+    window.addEventListener('abvp_data_updated', handleUpdate);
+    return () => window.removeEventListener('abvp_data_updated', handleUpdate);
+  }, []);
+
+  const upiId = settings.upiId || 'abvpndc.howrah@upi';
+  const qrCodeUrl = settings.paymentQrUrl;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -287,59 +301,74 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
 
                 {/* QR Code Card */}
                 <div className="bg-stone-50 rounded-xl p-4 border border-stone-200 flex flex-col items-center text-center space-y-3">
-                  <div className="relative p-3 bg-white rounded-xl shadow-md border border-stone-300">
-                    {/* Stylized QR Code Graphic with ABVP Logo Center */}
-                    <svg viewBox="0 0 160 160" className="w-40 h-40" xmlns="http://www.w3.org/2000/svg">
-                      {/* Outer Background */}
-                      <rect width="160" height="160" fill="#ffffff" />
-                      
-                      {/* Corner QR Markers */}
-                      <rect x="10" y="10" width="40" height="40" fill="#0f172a" rx="4" />
-                      <rect x="16" y="16" width="28" height="28" fill="#ffffff" rx="2" />
-                      <rect x="22" y="22" width="16" height="16" fill="#ea580c" rx="2" />
+                  <div className="relative p-2.5 bg-white rounded-xl shadow-md border border-stone-300 group">
+                    {qrCodeUrl ? (
+                      <div
+                        onClick={() => setViewingQrModal(true)}
+                        className="w-44 h-44 flex items-center justify-center overflow-hidden rounded-lg bg-white p-1 cursor-pointer"
+                        title="Click to view full size QR code"
+                      >
+                        <img
+                          src={qrCodeUrl}
+                          alt="ABVP NDC ₹5 UPI Payment QR Code"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    ) : (
+                      /* Stylized Default QR Code Graphic with ABVP Logo Center */
+                      <svg viewBox="0 0 160 160" className="w-40 h-40" xmlns="http://www.w3.org/2000/svg">
+                        {/* Outer Background */}
+                        <rect width="160" height="160" fill="#ffffff" />
+                        
+                        {/* Corner QR Markers */}
+                        <rect x="10" y="10" width="40" height="40" fill="#0f172a" rx="4" />
+                        <rect x="16" y="16" width="28" height="28" fill="#ffffff" rx="2" />
+                        <rect x="22" y="22" width="16" height="16" fill="#ea580c" rx="2" />
 
-                      <rect x="110" y="10" width="40" height="40" fill="#0f172a" rx="4" />
-                      <rect x="116" y="16" width="28" height="28" fill="#ffffff" rx="2" />
-                      <rect x="122" y="22" width="16" height="16" fill="#ea580c" rx="2" />
+                        <rect x="110" y="10" width="40" height="40" fill="#0f172a" rx="4" />
+                        <rect x="116" y="16" width="28" height="28" fill="#ffffff" rx="2" />
+                        <rect x="122" y="22" width="16" height="16" fill="#ea580c" rx="2" />
 
-                      <rect x="10" y="110" width="40" height="40" fill="#0f172a" rx="4" />
-                      <rect x="16" y="116" width="28" height="28" fill="#ffffff" rx="2" />
-                      <rect x="22" y="122" width="16" height="16" fill="#ea580c" rx="2" />
+                        <rect x="10" y="110" width="40" height="40" fill="#0f172a" rx="4" />
+                        <rect x="16" y="116" width="28" height="28" fill="#ffffff" rx="2" />
+                        <rect x="22" y="122" width="16" height="16" fill="#ea580c" rx="2" />
 
-                      {/* QR Pattern Simulation Blocks */}
-                      <rect x="58" y="15" width="8" height="8" fill="#0f172a" />
-                      <rect x="74" y="15" width="8" height="8" fill="#0f172a" />
-                      <rect x="90" y="15" width="8" height="8" fill="#0f172a" />
-                      <rect x="58" y="31" width="8" height="8" fill="#0f172a" />
-                      <rect x="74" y="31" width="8" height="8" fill="#ea580c" />
-                      <rect x="90" y="31" width="8" height="8" fill="#0f172a" />
-                      <rect x="58" y="47" width="8" height="8" fill="#0f172a" />
-                      <rect x="90" y="47" width="8" height="8" fill="#0f172a" />
+                        {/* QR Pattern Simulation Blocks */}
+                        <rect x="58" y="15" width="8" height="8" fill="#0f172a" />
+                        <rect x="74" y="15" width="8" height="8" fill="#0f172a" />
+                        <rect x="90" y="15" width="8" height="8" fill="#0f172a" />
+                        <rect x="58" y="31" width="8" height="8" fill="#0f172a" />
+                        <rect x="74" y="31" width="8" height="8" fill="#ea580c" />
+                        <rect x="90" y="31" width="8" height="8" fill="#0f172a" />
+                        <rect x="58" y="47" width="8" height="8" fill="#0f172a" />
+                        <rect x="90" y="47" width="8" height="8" fill="#0f172a" />
 
-                      {/* Middle row blocks */}
-                      <rect x="15" y="58" width="8" height="8" fill="#0f172a" />
-                      <rect x="31" y="58" width="8" height="8" fill="#0f172a" />
-                      <rect x="47" y="58" width="8" height="8" fill="#0f172a" />
-                      <rect x="105" y="58" width="8" height="8" fill="#0f172a" />
-                      <rect x="121" y="58" width="8" height="8" fill="#ea580c" />
-                      <rect x="137" y="58" width="8" height="8" fill="#0f172a" />
+                        {/* Middle row blocks */}
+                        <rect x="15" y="58" width="8" height="8" fill="#0f172a" />
+                        <rect x="31" y="58" width="8" height="8" fill="#0f172a" />
+                        <rect x="47" y="58" width="8" height="8" fill="#0f172a" />
+                        <rect x="105" y="58" width="8" height="8" fill="#0f172a" />
+                        <rect x="121" y="58" width="8" height="8" fill="#ea580c" />
+                        <rect x="137" y="58" width="8" height="8" fill="#0f172a" />
 
-                      {/* Center Brand Badge */}
-                      <circle cx="80" cy="80" r="22" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
-                      <text x="80" y="84" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="sans-serif">ABVP ₹5</text>
+                        {/* Center Brand Badge */}
+                        <circle cx="80" cy="80" r="22" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
+                        <text x="80" y="84" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="sans-serif">ABVP ₹5</text>
 
-                      {/* Bottom row blocks */}
-                      <rect x="58" y="105" width="8" height="8" fill="#0f172a" />
-                      <rect x="74" y="105" width="8" height="8" fill="#ea580c" />
-                      <rect x="90" y="105" width="8" height="8" fill="#0f172a" />
-                      <rect x="58" y="121" width="8" height="8" fill="#0f172a" />
-                      <rect x="90" y="121" width="8" height="8" fill="#0f172a" />
-                      <rect x="105" y="121" width="8" height="8" fill="#0f172a" />
-                      <rect x="121" y="121" width="8" height="8" fill="#0f172a" />
-                      <rect x="137" y="121" width="8" height="8" fill="#ea580c" />
-                      <rect x="105" y="137" width="8" height="8" fill="#0f172a" />
-                      <rect x="137" y="137" width="8" height="8" fill="#0f172a" />
-                    </svg>
+                        {/* Bottom row blocks */}
+                        <rect x="58" y="105" width="8" height="8" fill="#0f172a" />
+                        <rect x="74" y="105" width="8" height="8" fill="#ea580c" />
+                        <rect x="90" y="105" width="8" height="8" fill="#0f172a" />
+                        <rect x="58" y="121" width="8" height="8" fill="#0f172a" />
+                        <rect x="90" y="121" width="8" height="8" fill="#0f172a" />
+                        <rect x="105" y="121" width="8" height="8" fill="#0f172a" />
+                        <rect x="121" y="121" width="8" height="8" fill="#0f172a" />
+                        <rect x="137" y="121" width="8" height="8" fill="#ea580c" />
+                        <rect x="105" y="137" width="8" height="8" fill="#0f172a" />
+                        <rect x="137" y="137" width="8" height="8" fill="#0f172a" />
+                      </svg>
+                    )}
 
                     <div className="absolute inset-x-0 -bottom-3 flex justify-center">
                       <span className="px-2 py-0.5 rounded-full bg-orange-600 text-white text-[10px] font-bold shadow">
@@ -348,7 +377,18 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-500 pt-2 max-w-xs">
+                  {qrCodeUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setViewingQrModal(true)}
+                      className="text-[11px] text-orange-600 hover:text-orange-700 font-bold flex items-center gap-1 mt-1"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>Click to view full size</span>
+                    </button>
+                  )}
+
+                  <p className="text-[11px] text-slate-500 pt-1 max-w-xs">
                     Scan above or transfer ₹5 to unit UPI ID, take a screenshot of the successful transaction screen, and attach it in the form.
                   </p>
 
@@ -600,6 +640,71 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({
           </div>
         )}
       </div>
+
+      {/* Full Size QR Code Modal */}
+      {viewingQrModal && qrCodeUrl && (
+        <div
+          onClick={() => setViewingQrModal(false)}
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl border border-stone-200 text-center"
+          >
+            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+              <div className="text-left">
+                <h4 className="font-bold text-slate-900 text-sm">Official ₹5 UPI Payment QR</h4>
+                <p className="text-[11px] text-slate-500">Scan via GPay / PhonePe / Paytm / BHIM</p>
+              </div>
+              <button
+                onClick={() => setViewingQrModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-stone-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 flex justify-center">
+              <img
+                src={qrCodeUrl}
+                alt="ABVP NDC UPI Payment QR Code"
+                className="w-64 h-64 object-contain rounded-lg shadow-sm"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            <div className="bg-stone-100 p-2.5 rounded-lg text-xs font-mono font-bold text-slate-800 flex items-center justify-between">
+              <span>{upiId}</span>
+              <button
+                type="button"
+                onClick={handleCopyUpi}
+                className="px-2.5 py-1 bg-white rounded border border-stone-300 font-sans font-semibold text-[11px] hover:bg-stone-50 flex items-center gap-1"
+              >
+                {copiedUpi ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                <span>{copiedUpi ? 'Copied' : 'Copy'}</span>
+              </button>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <a
+                href={qrCodeUrl}
+                download="ABVP_NDC_UPI_Payment_QR.png"
+                className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Save QR Image</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setViewingQrModal(false)}
+                className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-slate-800 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

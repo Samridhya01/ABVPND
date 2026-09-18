@@ -17,9 +17,14 @@ import { NoticeDetailModal } from './NoticeDetailModal';
 interface NoticesSectionProps {
   notices: Notice[];
   onOpenAdmin: () => void;
+  onSelectNotice?: (notice: Notice) => void;
 }
 
-export const NoticesSection: React.FC<NoticesSectionProps> = ({ notices, onOpenAdmin }) => {
+export const NoticesSection: React.FC<NoticesSectionProps> = ({
+  notices,
+  onOpenAdmin,
+  onSelectNotice,
+}) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeNotice, setActiveNotice] = useState<Notice | null>(null);
