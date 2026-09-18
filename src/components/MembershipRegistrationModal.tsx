@@ -64,6 +64,8 @@ export const MembershipRegistrationModal: React.FC<MembershipRegistrationModalPr
     '4th Semester (2nd Year)',
     '5th Semester (3rd Year)',
     '6th Semester (3rd Year)',
+    '7th Semester (4th Year)',
+    '8th Semester (4th Year)',
     'Post-Graduate (M.A./M.Sc.)',
   ];
 
