@@ -588,7 +588,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   type="password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Enter Admin Passcode (ABVP@Samridhya)"
+                  placeholder="Enter Admin Passcode"
                   className="w-full px-4 py-2.5 text-center text-sm tracking-widest font-mono bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none"
                 />
               </div>
