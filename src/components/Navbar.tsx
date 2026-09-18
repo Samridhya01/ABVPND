@@ -131,13 +131,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-amber-400 transition-colors font-display">
                     ABVP
                   </span>
-<<<<<<< HEAD
                   <span className="text-xs sm:text-sm font-semibold text-orange-400">
                     Narasinha Dutt College Unit
-=======
                   <span className="text-xs sm:text-sm font-bold text-orange-400">
                     NDC Unit
->>>>>>> 089777fb64c240dee92ecbd96f76108184b8ac1c
                   </span>
                 </div>
                 <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium tracking-wide line-clamp-1">
