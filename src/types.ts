@@ -112,6 +112,8 @@ export interface UnitSettings {
   tagline: string;
   heroNotice?: string;
   bannerAlertActive: boolean;
+  logoUrl?: string;
+  adminPasscode?: string;
   socialLinks: {
     instagram: string;
     facebook: string;

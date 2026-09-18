@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { UnitSettings } from '../types';
 import { NewsletterSubscription } from './NewsletterSubscription';
+import { AbvpLogo } from './AbvpLogo';
 
 interface FooterProps {
   settings: UnitSettings;
@@ -57,12 +58,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Col 1 & 2: Brand & Mission */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-orange-700 p-0.5 shadow-md flex items-center justify-center shrink-0">
-                <div className="w-full h-full rounded-full bg-slate-950 flex flex-col items-center justify-center p-0.5 text-center">
-                  <span className="text-[9px] font-black text-amber-400 leading-none">ABVP</span>
-                  <span className="text-[7px] font-semibold text-slate-300 leading-none mt-0.5">NDC</span>
-                </div>
-              </div>
+              <AbvpLogo size="md" showText={false} className="shrink-0 shadow-md" />
               <div>
                 <h3 className="text-white font-black text-base tracking-tight font-display">
                   {settings.unitName}

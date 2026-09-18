@@ -1,10 +1,12 @@
-import React, { useId } from 'react';
+import React, { useId, useState, useEffect } from 'react';
+import { storageService } from '../services/storageService';
 
 interface AbvpLogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   showText?: boolean;
   className?: string;
   subtext?: string;
+  customLogoUrl?: string;
 }
 
 export const AbvpLogo: React.FC<AbvpLogoProps> = ({
@@ -12,8 +14,23 @@ export const AbvpLogo: React.FC<AbvpLogoProps> = ({
   showText = true,
   className = '',
   subtext,
+  customLogoUrl,
 }) => {
   const uid = useId().replace(/:/g, '_');
+  const [imgError, setImgError] = useState(false);
+  const [logoSrc, setLogoSrc] = useState<string>(() => {
+    return customLogoUrl || storageService.getSettings().logoUrl || '/ABVPLOGO.jpg';
+  });
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const current = customLogoUrl || storageService.getSettings().logoUrl || '/ABVPLOGO.jpg';
+      setLogoSrc(current);
+      setImgError(false);
+    };
+    window.addEventListener('abvp_data_updated', handleUpdate);
+    return () => window.removeEventListener('abvp_data_updated', handleUpdate);
+  }, [customLogoUrl]);
 
   const sizeMap = {
     xs: { box: 'w-7 h-7', text: 'text-xs' },
@@ -28,16 +45,25 @@ export const AbvpLogo: React.FC<AbvpLogoProps> = ({
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      {/* Official ABVP West Bengal Emblem (Vector SVG matching user upload) */}
+      {/* Official ABVP Emblem / Photo Logo */}
       <div
-        className={`${current.box} rounded-full shrink-0 relative transition-transform duration-200 hover:scale-105 select-none drop-shadow-md`}
-        title="Akhil Bharatiya Vidyarthi Parishad (ABVP) – Official West Bengal Emblem"
+        className={`${current.box} rounded-full shrink-0 relative transition-transform duration-200 hover:scale-105 select-none drop-shadow-md overflow-hidden bg-white flex items-center justify-center`}
+        title="Akhil Bharatiya Vidyarthi Parishad (ABVP) – Narasinha Dutt College Unit"
       >
-        <svg
-          viewBox="0 0 300 300"
-          className="w-full h-full rounded-full"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        {!imgError && logoSrc ? (
+          <img
+            src={logoSrc}
+            alt="ABVP Narasinha Dutt College Unit Logo"
+            className="w-full h-full rounded-full object-cover ring-1 ring-orange-500/20"
+            referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <svg
+            viewBox="0 0 300 300"
+            className="w-full h-full rounded-full"
+            xmlns="http://www.w3.org/2000/svg"
+          >
           <defs>
             {/* Top Text Arc Path: Left to Right across upper half */}
             <path
@@ -191,6 +217,7 @@ export const AbvpLogo: React.FC<AbvpLogoProps> = ({
             </textPath>
           </text>
         </svg>
+        )}
       </div>
 
       {showText && (

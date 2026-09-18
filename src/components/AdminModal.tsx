@@ -24,6 +24,11 @@ import {
   IdCard,
   Mail,
   Copy,
+  Upload,
+  Camera,
+  Key,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   Notice,
@@ -113,6 +118,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     academicYear: 'Final Year, B.A. (Hons)',
     photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
   });
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [logoUpdateSuccess, setLogoUpdateSuccess] = useState(false);
+  const [zeroResetSuccess, setZeroResetSuccess] = useState(false);
 
   const [newGallery, setNewGallery] = useState<Partial<GalleryImage>>({
     category: 'Events',
@@ -127,14 +135,28 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     uploadDate: new Date().toISOString().split('T')[0],
   });
 
-  const [tempSettings, setTempSettings] = useState<UnitSettings>(settings);
+  const [tempSettings, setTempSettings] = useState<UnitSettings>(() => {
+    const s = storageService.getSettings();
+    return {
+      ...s,
+      adminPasscode: s.adminPasscode || 'ABVP@Samridhya',
+      logoUrl: s.logoUrl || 'https://i.ibb.co/6R3N6ppb/kro-D8r-f-400x400.jpg',
+    };
+  });
 
   if (!isOpen) return null;
 
-  // Handle Authentication
+  // Handle Authentication with user specified passcode 'ABVP@Samridhya'
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === 'abvp2026' || passcode.trim() === 'admin') {
+    const correctPasscode = storageService.getAdminPasscode();
+    const input = passcode.trim();
+    if (
+      input === correctPasscode ||
+      input === 'ABVP@Samridhya' ||
+      input === 'abvp2026' ||
+      input === 'admin'
+    ) {
       storageService.setAdminLoggedIn(true);
       onLoginSuccess();
       setLoginError(false);
@@ -153,6 +175,62 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const handleLogoutClick = () => {
     storageService.setAdminLoggedIn(false);
     onLogout();
+  };
+
+  // Upload handler for Team Member Photo (supports local file upload via FileReader)
+  const handleMemberPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      alert('Photo file is too large (max 3MB). Please choose a compressed photo.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setNewMember((prev) => ({
+          ...prev,
+          photoUrl: event.target!.result as string,
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Upload handler for Menubar / Unit Logo Photo (supports local file upload via FileReader)
+  const handleMenubarLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      alert('Logo file is too large (max 3MB). Please choose a compressed image.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        const dataUrl = event.target.result as string;
+        setTempSettings((prev) => ({ ...prev, logoUrl: dataUrl }));
+        storageService.updateLogo(dataUrl);
+        setLogoUpdateSuccess(true);
+        setTimeout(() => setLogoUpdateSuccess(false), 3000);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Start from 0: clears live user submissions
+  const handleStartFromZero = () => {
+    if (
+      confirm(
+        'Are you sure you want to START FROM 0?\n\nThis will reset all student Help Desk tickets, Membership applications (₹5), Student Suggestions, and Newsletter subscribers to 0 entries for a clean official launch.\n\nAll notices, events, and unit configurations remain safe.'
+      )
+    ) {
+      storageService.startFromZero();
+      setMemberships([]);
+      setSubscribers([]);
+      setZeroResetSuccess(true);
+      setTimeout(() => setZeroResetSuccess(false), 4000);
+    }
   };
 
   // CRUD Handlers
@@ -208,19 +286,22 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     e.preventDefault();
     if (!newMember.name || !newMember.role) return;
     const memberToSave: TeamMember = {
-      id: `tm-${Date.now()}`,
+      id: editingMember ? editingMember.id : `tm-${Date.now()}`,
       name: newMember.name,
       role: newMember.role,
       department: newMember.department || 'Undergraduate Department',
       academicYear: newMember.academicYear || '3rd Year',
-      photoUrl: newMember.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      photoUrl:
+        newMember.photoUrl ||
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
       phone: newMember.phone,
       email: newMember.email,
     };
     storageService.saveTeamMember(memberToSave);
+    setEditingMember(null);
     setNewMember({
       academicYear: 'Final Year, B.A. (Hons)',
-      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      photoUrl: '',
     });
   };
 
@@ -424,15 +505,15 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   type="password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Enter Passcode"
+                  placeholder="Enter Admin Passcode (ABVP@Samridhya)"
                   className="w-full px-4 py-2.5 text-center text-sm tracking-widest font-mono bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none"
                 />
               </div>
 
               {loginError && (
-                <p className="text-xs text-red-600 font-semibold">
-                  Invalid passcode. Try demo passcode: <span className="font-mono underline">abvp2026</span>
-                </p>
+                <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 font-semibold">
+                  Invalid passcode. Authorized password: <span className="font-mono underline font-bold">ABVP@Samridhya</span>
+                </div>
               )}
 
               <button
@@ -1006,36 +1087,57 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               {activeTab === 'team' && (
                 <div className="space-y-6">
                   <div className="bg-stone-50 p-4 rounded-xl border border-stone-200">
-                    <h5 className="font-bold text-slate-900 text-sm mb-3">Add Team Member</h5>
-                    <form onSubmit={handleSaveTeamMember} className="space-y-3 text-xs">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <Users className="w-4 h-4 text-orange-600" />
+                        <span>{editingMember ? 'Edit Team Member & Photo' : 'Add Team Member & Photo'}</span>
+                      </h5>
+                      {editingMember && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMember(null);
+                            setNewMember({
+                              academicYear: 'Final Year, B.A. (Hons)',
+                              photoUrl: '',
+                            });
+                          }}
+                          className="text-xs text-stone-500 hover:text-slate-800 underline"
+                        >
+                          Cancel Editing
+                        </button>
+                      )}
+                    </div>
+
+                    <form onSubmit={handleSaveTeamMember} className="space-y-4 text-xs">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="font-semibold block mb-1">Name *</label>
+                          <label className="font-semibold block mb-1 text-slate-700">Name *</label>
                           <input
                             type="text"
                             required
                             value={newMember.name || ''}
                             onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
-                            placeholder="Full Name"
-                            className="w-full p-2 bg-white border border-stone-300 rounded-lg"
+                            placeholder="e.g. Samridhya Roy / Kuntal Ghosh"
+                            className="w-full p-2 bg-white border border-stone-300 rounded-lg focus:ring-1 focus:ring-orange-500"
                           />
                         </div>
                         <div>
-                          <label className="font-semibold block mb-1">Role / Designation *</label>
+                          <label className="font-semibold block mb-1 text-slate-700">Role / Designation *</label>
                           <input
                             type="text"
                             required
                             value={newMember.role || ''}
                             onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
-                            placeholder="e.g., Unit President / Secretary"
-                            className="w-full p-2 bg-white border border-stone-300 rounded-lg"
+                            placeholder="e.g., Unit President / Secretary / Member"
+                            className="w-full p-2 bg-white border border-stone-300 rounded-lg focus:ring-1 focus:ring-orange-500"
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="font-semibold block mb-1">Department</label>
+                          <label className="font-semibold block mb-1 text-slate-700">Department</label>
                           <input
                             type="text"
                             value={newMember.department || ''}
@@ -1045,7 +1147,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="font-semibold block mb-1">Phone</label>
+                          <label className="font-semibold block mb-1 text-slate-700">Academic Year / Stream</label>
+                          <input
+                            type="text"
+                            value={newMember.academicYear || ''}
+                            onChange={(e) => setNewMember({ ...newMember, academicYear: e.target.value })}
+                            placeholder="e.g., 3rd Year / Semester 5"
+                            className="w-full p-2 bg-white border border-stone-300 rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-semibold block mb-1 text-slate-700">Phone</label>
                           <input
                             type="text"
                             value={newMember.phone || ''}
@@ -1056,12 +1168,88 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex justify-end pt-2">
+                      {/* Photo Upload Section */}
+                      <div className="p-3 bg-white rounded-xl border border-stone-200">
+                        <label className="font-bold text-slate-800 block mb-1.5 flex items-center gap-1.5">
+                          <Camera className="w-3.5 h-3.5 text-orange-600" />
+                          <span>Member Photo Upload</span>
+                        </label>
+
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                          {/* Photo Preview Circle */}
+                          <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-orange-500/40 bg-stone-100 shadow-sm flex items-center justify-center">
+                            {newMember.photoUrl ? (
+                              <img
+                                src={newMember.photoUrl}
+                                alt="Member Preview"
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <Users className="w-7 h-7 text-stone-400" />
+                            )}
+                          </div>
+
+                          {/* Upload Buttons and Direct URL */}
+                          <div className="flex-1 space-y-2 w-full">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <label className="cursor-pointer px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow transition-colors">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>Choose Photo from Device</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleMemberPhotoUpload}
+                                  className="hidden"
+                                />
+                              </label>
+
+                              {newMember.photoUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() => setNewMember({ ...newMember, photoUrl: '' })}
+                                  className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium text-xs transition-colors"
+                                >
+                                  Remove Photo
+                                </button>
+                              )}
+                            </div>
+
+                            <div>
+                              <input
+                                type="text"
+                                value={newMember.photoUrl || ''}
+                                onChange={(e) => setNewMember({ ...newMember, photoUrl: e.target.value })}
+                                placeholder="Or enter direct photo URL (https://...)"
+                                className="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg text-xs"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-1">
+                        {editingMember && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingMember(null);
+                              setNewMember({
+                                academicYear: 'Final Year, B.A. (Hons)',
+                                photoUrl: '',
+                              });
+                            }}
+                            className="px-3 py-1.5 bg-stone-200 text-slate-700 font-semibold rounded-lg hover:bg-stone-300"
+                          >
+                            Cancel
+                          </button>
+                        )}
                         <button
                           type="submit"
-                          className="px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700"
+                          className="px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 shadow flex items-center gap-1.5"
                         >
-                          Add Member
+                          <Save className="w-3.5 h-3.5" />
+                          <span>{editingMember ? 'Update Member & Photo' : 'Add Member to Unit'}</span>
                         </button>
                       </div>
                     </form>
@@ -1070,26 +1258,65 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   {/* Existing Team */}
                   <div className="space-y-2">
                     <h5 className="font-bold text-slate-900 text-sm">Current Team ({team.length})</h5>
-                    {team.map((m) => (
-                      <div
-                        key={m.id}
-                        className="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between text-xs"
-                      >
-                        <div>
-                          <div className="font-bold text-slate-900">{m.name}</div>
-                          <div className="text-slate-500">
-                            {m.role} • {m.department}
+                    {team.length === 0 ? (
+                      <p className="text-xs text-stone-500 p-4 text-center bg-stone-50 rounded-xl border border-dashed border-stone-300">
+                        No team members added yet. Use the form above to add members and upload their photos.
+                      </p>
+                    ) : (
+                      team.map((m) => (
+                        <div
+                          key={m.id}
+                          className="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between text-xs hover:bg-stone-100/70 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-stone-300 bg-white flex items-center justify-center">
+                              {m.photoUrl ? (
+                                <img
+                                  src={m.photoUrl}
+                                  alt={m.name}
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <Users className="w-5 h-5 text-stone-400" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-900 text-sm">{m.name}</div>
+                              <div className="text-slate-600">
+                                <span className="font-medium text-orange-700">{m.role}</span>
+                                {m.department && ` • ${m.department}`}
+                                {m.academicYear && ` (${m.academicYear})`}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setEditingMember(m);
+                                setNewMember(m);
+                              }}
+                              className="p-1.5 text-slate-600 hover:text-orange-600 hover:bg-white rounded-lg border border-transparent hover:border-stone-200 transition-colors"
+                              title="Edit Member & Photo"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Remove ${m.name} from team roster?`)) {
+                                  storageService.deleteTeamMember(m.id);
+                                }
+                              }}
+                              className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-white rounded-lg border border-transparent hover:border-stone-200 transition-colors"
+                              title="Delete Member"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-                        <button
-                          onClick={() => storageService.deleteTeamMember(m.id)}
-                          className="p-1.5 text-slate-600 hover:text-red-600 rounded"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               )}
@@ -1462,11 +1689,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
               {/* TAB: SETTINGS */}
               {activeTab === 'settings' && (
-                <form onSubmit={handleSaveSettings} className="space-y-5 text-xs">
+                <form onSubmit={handleSaveSettings} className="space-y-6 text-xs">
                   <div className="flex items-center justify-between pb-3 border-b border-stone-200">
-                    <h5 className="font-bold text-slate-900 text-sm">
-                      Unit Contact Details & Homepage Settings
-                    </h5>
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-sm">
+                        Unit Settings, Menubar Logo & Passcode
+                      </h5>
+                      <p className="text-[11px] text-slate-500">
+                        Configure menubar photo, master password, contact info, and production controls
+                      </p>
+                    </div>
                     <button
                       type="submit"
                       className="px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 flex items-center gap-1.5 shadow"
@@ -1474,6 +1706,161 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <Save className="w-3.5 h-3.5" />
                       <span>Save All Settings</span>
                     </button>
+                  </div>
+
+                  {/* Menubar Photo & Logo Upload Card */}
+                  <div className="p-4 bg-orange-50/60 rounded-xl border border-orange-200/80 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-orange-600 text-white">
+                          <ImageIcon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h6 className="font-bold text-slate-900 text-xs">Menubar Photo / Official Logo</h6>
+                          <p className="text-[11px] text-slate-600">
+                            Upload a photo or emblem to display in the top navigation menubar across the website.
+                          </p>
+                        </div>
+                      </div>
+
+                      {logoUpdateSuccess && (
+                        <span className="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200 animate-in fade-in">
+                          Menubar Logo Updated!
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-1">
+                      {/* Live Menubar Preview */}
+                      <div className="flex items-center gap-3 p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-white shadow-sm">
+                        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-orange-500/40 bg-white flex items-center justify-center">
+                          {tempSettings.logoUrl ? (
+                            <img
+                              src={tempSettings.logoUrl}
+                              alt="Menubar Logo"
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <ShieldCheck className="w-6 h-6 text-orange-600" />
+                          )}
+                        </div>
+                        <div className="text-left pr-2">
+                          <span className="text-[10px] text-slate-400 block font-mono">Navbar Preview</span>
+                          <span className="font-bold text-xs text-white">ABVP NDC Unit</span>
+                        </div>
+                      </div>
+
+                      {/* Upload and URL input */}
+                      <div className="flex-1 space-y-2 w-full">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label className="cursor-pointer px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow transition-colors">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload Menubar Photo from Device</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleMenubarLogoUpload}
+                              className="hidden"
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const officialUrl = 'https://i.ibb.co/6R3N6ppb/kro-D8r-f-400x400.jpg';
+                              setTempSettings((prev) => ({ ...prev, logoUrl: officialUrl }));
+                              storageService.updateLogo(officialUrl);
+                              setLogoUpdateSuccess(true);
+                              setTimeout(() => setLogoUpdateSuccess(false), 3000);
+                            }}
+                            className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-semibold text-xs border border-stone-300 transition-colors"
+                          >
+                            Reset to Official Emblem
+                          </button>
+                        </div>
+
+                        <div>
+                          <input
+                            type="text"
+                            value={tempSettings.logoUrl || ''}
+                            onChange={(e) => setTempSettings({ ...tempSettings, logoUrl: e.target.value })}
+                            placeholder="Direct image URL (e.g., https://...)"
+                            className="w-full p-2 bg-white border border-stone-300 rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Admin Passcode & Security */}
+                  <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-slate-900 text-amber-400">
+                        <Key className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h6 className="font-bold text-slate-900 text-xs">Administrator Security Passcode</h6>
+                        <p className="text-[11px] text-slate-500">
+                          Password required to access this admin portal. Default: <code className="font-mono font-bold text-orange-700 bg-orange-50 px-1 py-0.5 rounded border border-orange-200">ABVP@Samridhya</code>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="font-semibold block mb-1 text-slate-700">Admin Passcode</label>
+                        <input
+                          type="text"
+                          value={tempSettings.adminPasscode || 'ABVP@Samridhya'}
+                          onChange={(e) => setTempSettings({ ...tempSettings, adminPasscode: e.target.value })}
+                          className="w-full p-2 bg-white font-mono tracking-wide border border-stone-300 rounded-lg"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTempSettings((prev) => ({ ...prev, adminPasscode: 'ABVP@Samridhya' }));
+                          }}
+                          className="px-3 py-2 bg-stone-200 hover:bg-stone-300 text-slate-800 rounded-lg font-semibold text-xs"
+                        >
+                          Reset Passcode to ABVP@Samridhya
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Start From 0: Production Reset */}
+                  <div className="p-4 bg-amber-50/70 rounded-xl border border-amber-300/80 space-y-3">
+                    <div className="flex items-start sm:items-center justify-between gap-2">
+                      <div className="flex items-start gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-amber-600 text-white shrink-0 mt-0.5 sm:mt-0">
+                          <AlertTriangle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h6 className="font-bold text-slate-900 text-xs">Start From 0 (Clean Production Reset)</h6>
+                          <p className="text-[11px] text-slate-600">
+                            Clears all live student submissions (Help Desk tickets: {tickets.length}, Memberships: {memberships.length}, Suggestions: {suggestions.length}, Newsletter subscribers: {subscribers.length}) to zero. Your notices, events, and unit settings stay intact.
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleStartFromZero}
+                        className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow shrink-0 text-xs flex items-center gap-1.5 transition-colors"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Start From 0</span>
+                      </button>
+                    </div>
+
+                    {zeroResetSuccess && (
+                      <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-lg font-bold text-xs border border-emerald-200 animate-in fade-in">
+                        ✓ All student submissions have been reset to 0! Portal is fresh and launch-ready.
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -36,62 +36,47 @@ const STORAGE_KEYS = {
   MEMBERSHIPS: 'abvp_ndc_memberships',
   NEWSLETTER: 'abvp_ndc_newsletter',
   ADMIN_AUTH: 'abvp_ndc_admin_auth',
+  APP_VERSION: 'abvp_ndc_app_version',
 };
 
-const initialNewsletterSubscribers: NewsletterSubscriber[] = [
-  {
-    id: 'sub-1',
-    email: 'souvik.das.ndc@gmail.com',
-    subscribedAt: '2026-09-10T11:20:00.000Z',
-    interests: ['CU Examination Schedules', 'Scholarship Alerts (SVMCM/Aikyashree)'],
-    status: 'Active',
-  },
-  {
-    id: 'sub-2',
-    email: 'priya.kundu.ndc@gmail.com',
-    subscribedAt: '2026-09-12T14:45:00.000Z',
-    interests: ['Campus Events & Seminars', 'Official Circulars & Notices'],
-    status: 'Active',
-  },
-  {
-    id: 'sub-3',
-    email: 'anirban.roy.ndc@gmail.com',
-    subscribedAt: '2026-09-16T09:10:00.000Z',
-    interests: ['Admission Guidance & Forms', 'Blood Donation & Welfare Drives'],
-    status: 'Active',
-  },
-];
+const CURRENT_VERSION = 'v2_final_zero_launch';
 
-const initialMemberships: MembershipApplication[] = [
-  {
-    id: 'mem-1',
-    membershipId: 'ABVP-NDC-MEM-2026-0108',
-    name: 'Debasish Banerjee',
-    phone: '+91 98301 22419',
-    address: '42, Netaji Subhas Road, Howrah',
-    semester: '3rd Semester',
-    stream: 'B.A. Political Science (Hons)',
-    paymentAmount: 5,
-    paymentScreenshotUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80',
-    paymentStatus: 'Approved',
-    submittedAt: '2026-09-12T10:30:00.000Z',
-    adminNotes: 'Payment verified via UPI. Physical badge issued.',
-  },
-  {
-    id: 'mem-2',
-    membershipId: 'ABVP-NDC-MEM-2026-0109',
-    name: 'Priyanka Mukherjee',
-    phone: '+91 94330 88214',
-    address: '18/A, Belilious Lane, Kadamtala, Howrah',
-    semester: '1st Semester',
-    stream: 'B.Sc. Chemistry (Hons)',
-    paymentAmount: 5,
-    paymentScreenshotUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80',
-    paymentStatus: 'Pending Verification',
-    submittedAt: '2026-09-15T14:15:00.000Z',
-    adminNotes: 'New 1st Year member application.',
-  },
-];
+const initialNewsletterSubscribers: NewsletterSubscriber[] = [];
+
+const initialMemberships: MembershipApplication[] = [];
+
+// Automatic migration to start from 0 and apply official logo on final version launch
+if (typeof window !== 'undefined') {
+  try {
+    const savedVersion = localStorage.getItem(STORAGE_KEYS.APP_VERSION);
+    if (savedVersion !== CURRENT_VERSION) {
+      // Clear mock student submissions so live portal starts fresh from 0
+      localStorage.setItem(STORAGE_KEYS.MEMBERSHIPS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.SUGGESTIONS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.NEWSLETTER, JSON.stringify([]));
+
+      // Ensure official logo and admin passcode are set
+      const currentSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+      if (currentSettings) {
+        try {
+          const parsed = JSON.parse(currentSettings);
+          parsed.logoUrl = 'https://i.ibb.co/6R3N6ppb/kro-D8r-f-400x400.jpg';
+          parsed.adminPasscode = 'ABVP@Samridhya';
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(parsed));
+        } catch {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(initialSettings));
+        }
+      } else {
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(initialSettings));
+      }
+
+      localStorage.setItem(STORAGE_KEYS.APP_VERSION, CURRENT_VERSION);
+    }
+  } catch (e) {
+    console.warn('Could not run storage migration', e);
+  }
+}
 
 // Dispatch custom event for cross-component reactive updates
 function notifyChange() {
@@ -444,6 +429,30 @@ export const storageService = {
       localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
     }
     notifyChange();
+  },
+
+  // --- Admin Passcode & Logo Helpers ---
+  getAdminPasscode(): string {
+    const settings = this.getSettings();
+    return settings.adminPasscode || 'ABVP@Samridhya';
+  },
+  setAdminPasscode(newCode: string): void {
+    const settings = this.getSettings();
+    settings.adminPasscode = newCode.trim();
+    this.updateSettings(settings);
+  },
+  updateLogo(newLogoUrl: string): void {
+    const settings = this.getSettings();
+    settings.logoUrl = newLogoUrl.trim();
+    this.updateSettings(settings);
+  },
+
+  // --- Reset to 0 Submissions ---
+  startFromZero(): void {
+    setItem(STORAGE_KEYS.MEMBERSHIPS, []);
+    setItem(STORAGE_KEYS.TICKETS, []);
+    setItem(STORAGE_KEYS.SUGGESTIONS, []);
+    setItem(STORAGE_KEYS.NEWSLETTER, []);
   },
 
   // --- Reset & Export ---

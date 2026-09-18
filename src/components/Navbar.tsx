@@ -134,12 +134,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="text-xs sm:text-sm font-semibold text-orange-400">
                     Narasinha Dutt College Unit
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-orange-400">
-                    NDC Unit
-                  </span>
                 </div>
                 <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium tracking-wide line-clamp-1">
-                  Narasimha Datta College • <span className="text-amber-400 italic">জ্ঞান • চরিত্র • একতা</span>
+                  Narasinha Dutt College • <span className="text-amber-400 italic">জ্ঞান • চরিত্র • একতা</span>
                 </span>
               </div>
             </a>

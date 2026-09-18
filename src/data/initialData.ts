@@ -24,6 +24,8 @@ export const initialSettings: UnitSettings = {
   tagline: 'Students • Service • Nation',
   heroNotice: 'Help Desk active for Semester Admissions & Swami Vivekananda Merit-cum-Means (SVMCM) Scholarship Guidance.',
   bannerAlertActive: true,
+  logoUrl: 'https://i.ibb.co/6R3N6ppb/kro-D8r-f-400x400.jpg',
+  adminPasscode: 'ABVP@Samridhya',
   socialLinks: {
     instagram: 'https://instagram.com/abvp_ndc_unit',
     facebook: 'https://facebook.com/abvp.ndc.howrah',
@@ -299,83 +301,9 @@ export const initialActivities: ActivityItem[] = [
   },
 ];
 
-export const initialTickets: HelpDeskTicket[] = [
-  {
-    id: 'tkt-01',
-    referenceId: 'ABVP-NDC-2026-1042',
-    studentName: 'Sourav Mondal',
-    email: 'sourav.m.sample@gmail.com',
-    phone: '+91 98311 12345',
-    courseSemester: 'B.Sc Physics (Hons), Sem 3',
-    category: 'Scholarship',
-    description: 'SVMCM application status showing institute verification pending for 2 weeks. Need help checking with college scholarship counter.',
-    preferredContact: 'WhatsApp',
-    status: 'In Progress',
-    adminNotes: 'Spoken with college office clerk; verification queue will be cleared by Thursday.',
-    submittedAt: '2026-09-10 11:24 AM',
-    updatedAt: '2026-09-12 03:40 PM',
-  },
-  {
-    id: 'tkt-02',
-    referenceId: 'ABVP-NDC-2026-1039',
-    studentName: 'Priya Das',
-    email: 'priya.das.sample@gmail.com',
-    phone: '+91 98322 67890',
-    courseSemester: 'B.A English (Hons), Sem 1',
-    category: 'Student Facilities',
-    description: 'Drinking water purifier on 2nd floor Arts building requires filter replacement and clean dispenser tap.',
-    preferredContact: 'Phone Call',
-    status: 'Resolved',
-    adminNotes: 'Maintenance inspection completed and water filter cartridge replaced on 9th Sep.',
-    submittedAt: '2026-09-06 02:15 PM',
-    updatedAt: '2026-09-09 04:30 PM',
-  },
-  {
-    id: 'tkt-03',
-    referenceId: 'ABVP-NDC-2026-1048',
-    studentName: 'Rahul Banerjee',
-    email: 'rahul.b.sample@gmail.com',
-    phone: '+91 98333 45678',
-    courseSemester: 'B.Com General, Sem 5',
-    category: 'Examination',
-    description: 'Correction required in University registration card spelling of father’s name before final exam form fill-up.',
-    preferredContact: 'WhatsApp',
-    status: 'Under Review',
-    adminNotes: 'Application format provided to student; accompanying him to Calcutta University verification desk on Monday.',
-    submittedAt: '2026-09-14 10:05 AM',
-    updatedAt: '2026-09-15 11:00 AM',
-  },
-];
+export const initialTickets: HelpDeskTicket[] = [];
 
-export const initialSuggestions: StudentSuggestion[] = [
-  {
-    id: 'sug-01',
-    isAnonymous: true,
-    category: 'Library & Academics',
-    suggestion: 'Please request the college administration to extend Central Library evening reading room hours up to 6:30 PM during semester exam months.',
-    submittedAt: '2026-09-11 04:12 PM',
-    status: 'Reviewed',
-  },
-  {
-    id: 'sug-02',
-    isAnonymous: false,
-    studentName: 'Anirban Chakraborty',
-    courseSemester: 'B.Sc Computer Science, Sem 4',
-    category: 'Campus Infrastructure',
-    suggestion: 'A covered bicycle & two-wheeler shed with CCTV monitoring would prevent rain damage to student vehicles near the back entrance.',
-    contactInfo: 'anirban.c@sample.com',
-    submittedAt: '2026-09-08 01:20 PM',
-    status: 'Received',
-  },
-  {
-    id: 'sug-03',
-    isAnonymous: true,
-    category: 'Canteen & Facilities',
-    suggestion: 'Provide more affordable healthy breakfast and tiffin options like idli/dosa or fresh fruit in the college canteen at subsidized rates.',
-    submittedAt: '2026-08-30 11:45 AM',
-    status: 'Implemented',
-  },
-];
+export const initialSuggestions: StudentSuggestion[] = [];
 
 export const initialGallery: GalleryImage[] = [
   {
