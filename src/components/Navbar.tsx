@@ -133,6 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </span>
                   <span className="text-xs sm:text-sm font-semibold text-orange-400">
                     Narasinha Dutt College Unit
+                  </span>
                   <span className="text-xs sm:text-sm font-bold text-orange-400">
                     NDC Unit
                   </span>
